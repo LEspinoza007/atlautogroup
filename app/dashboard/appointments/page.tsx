@@ -22,11 +22,21 @@ function formatTime(t: string) {
 
 export default async function AppointmentsPage() {
   const supabase = await createClient()
-  const { data: appointments } = await supabase
-    .from('appointments')
-    .select('*, vehicles(id, year, make, model)')
-    .order('appointment_date', { ascending: true })
-    .order('appointment_time', { ascending: true })
+
+  const [{ data: appointments }, { data: vehicles }] = await Promise.all([
+    supabase
+      .from('appointments')
+      .select('*')
+      .order('appointment_date', { ascending: true })
+      .order('appointment_time', { ascending: true }),
+    supabase
+      .from('vehicles')
+      .select('id, year, make, model'),
+  ])
+
+  const vehicleMap = Object.fromEntries(
+    (vehicles ?? []).map(v => [v.id, v])
+  )
 
   const pending = appointments?.filter(a => a.status === 'pending').length ?? 0
 
@@ -50,61 +60,64 @@ export default async function AppointmentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-50">
-              {(appointments ?? []).map(apt => (
-                <tr key={apt.id} className="hover:bg-zinc-50 transition-colors">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-rose-400 shrink-0" />
-                      <div>
-                        <p className="font-semibold text-zinc-900">{formatDate(apt.appointment_date)}</p>
-                        <p className="text-zinc-400 text-xs">{formatTime(apt.appointment_time)}</p>
+              {(appointments ?? []).map(apt => {
+                const vehicle = apt.vehicle_id ? vehicleMap[apt.vehicle_id] : null
+                return (
+                  <tr key={apt.id} className="hover:bg-zinc-50 transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-[#5BB8F5] shrink-0" />
+                        <div>
+                          <p className="font-semibold text-zinc-900">{formatDate(apt.appointment_date)}</p>
+                          <p className="text-zinc-400 text-xs">{formatTime(apt.appointment_time)}</p>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 font-medium text-zinc-900">
-                    {apt.client_first_name} {apt.client_last_name}
-                  </td>
-                  <td className="px-5 py-4">
-                    <a href={`https://wa.me/${apt.client_phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-zinc-600 hover:text-green-600 transition-colors">
-                      <Phone className="w-3.5 h-3.5" />{apt.client_phone}
-                    </a>
-                    {apt.client_email && (
-                      <a href={`mailto:${apt.client_email}`}
-                        className="flex items-center gap-1 text-zinc-400 hover:text-zinc-700 text-xs mt-0.5 transition-colors">
-                        <Mail className="w-3 h-3" />{apt.client_email}
+                    </td>
+                    <td className="px-5 py-4 font-medium text-zinc-900">
+                      {apt.client_first_name} {apt.client_last_name}
+                    </td>
+                    <td className="px-5 py-4">
+                      <a href={`https://wa.me/${apt.client_phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-zinc-600 hover:text-green-600 transition-colors">
+                        <Phone className="w-3.5 h-3.5" />{apt.client_phone}
                       </a>
-                    )}
-                  </td>
-                  <td className="px-5 py-4">
-                    {apt.vehicles ? (
-                      <Link href={`/inventory/${apt.vehicles.id}`} target="_blank"
-                        className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-medium">
-                        <ExternalLink className="w-3 h-3" />
-                        {apt.vehicles.year} {apt.vehicles.make} {apt.vehicles.model}
+                      {apt.client_email && (
+                        <a href={`mailto:${apt.client_email}`}
+                          className="flex items-center gap-1 text-zinc-400 hover:text-zinc-700 text-xs mt-0.5 transition-colors">
+                          <Mail className="w-3 h-3" />{apt.client_email}
+                        </a>
+                      )}
+                    </td>
+                    <td className="px-5 py-4">
+                      {vehicle ? (
+                        <Link href={`/inventory/${vehicle.id}`} target="_blank"
+                          className="flex items-center gap-1 text-blue-600 hover:underline text-xs font-medium">
+                          <ExternalLink className="w-3 h-3" />
+                          {vehicle.year} {vehicle.make} {vehicle.model}
+                        </Link>
+                      ) : <span className="text-zinc-400 text-xs">—</span>}
+                    </td>
+                    <td className="px-5 py-4">
+                      {apt.dnc_promotional ? (
+                        <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">DNC Promo</span>
+                      ) : (
+                        <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Consented</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${STATUS_STYLES[apt.status] ?? ''}`}>
+                        {apt.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <Link href={`/dashboard/appointments/${apt.id}`}
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                        Manage
                       </Link>
-                    ) : <span className="text-zinc-400 text-xs">—</span>}
-                  </td>
-                  <td className="px-5 py-4">
-                    {apt.dnc_promotional ? (
-                      <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">DNC Promo</span>
-                    ) : (
-                      <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Consented</span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${STATUS_STYLES[apt.status] ?? ''}`}>
-                      {apt.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <Link href={`/dashboard/appointments/${apt.id}`}
-                      className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                      Manage
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                )
+              })}
               {(appointments?.length ?? 0) === 0 && (
                 <tr>
                   <td colSpan={7} className="px-5 py-16 text-center text-zinc-400">

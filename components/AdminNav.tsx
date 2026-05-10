@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { LayoutDashboard, PlusCircle, LogOut, Calendar, Search, Settings } from 'lucide-react'
@@ -32,7 +33,13 @@ export default function AdminNav({ userEmail }: { userEmail: string }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <div className="flex items-center gap-5">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-[#5BB8F5] rounded-md flex items-center justify-center font-black text-white text-xs">ATL</div>
+            <Image
+              src="/logo.png"
+              alt="ATL Auto Group"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-lg"
+            />
             <span className="font-semibold text-white text-sm hidden sm:block">Admin</span>
           </div>
           <nav className="flex items-center gap-1 overflow-x-auto">
@@ -46,7 +53,7 @@ export default function AdminNav({ userEmail }: { userEmail: string }) {
         <div className="flex items-center gap-3 shrink-0">
           <span className="text-xs text-zinc-500 hidden md:block">{userEmail}</span>
           <button onClick={handleSignOut}
-            className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-rose-400 transition-colors">
+            className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-[#5BB8F5] transition-colors">
             <LogOut className="w-3.5 h-3.5" />Sign Out
           </button>
         </div>
