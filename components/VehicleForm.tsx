@@ -4,9 +4,16 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Vehicle, VehicleStatus } from '@/types'
-import { Star, X, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { Star, X, Plus } from 'lucide-react'
 
 type Props = { vehicle?: Vehicle }
+
+type PhotoEntry = {
+  key: string
+  src: string
+  isNew: boolean
+  file?: File
+}
 
 const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-black placeholder-gray-400"
 const labelClass = "block text-sm font-medium text-gray-700 mb-1"
@@ -41,9 +48,7 @@ const FEATURE_GROUPS = [
   },
   {
     label: 'Sunroof & Views',
-    features: [
-      'Sunroof / Moonroof', 'Panoramic Sunroof', 'Power Sunshade',
-    ],
+    features: ['Sunroof / Moonroof', 'Panoramic Sunroof', 'Power Sunshade'],
   },
   {
     label: 'Exterior & Wheels',
@@ -64,11 +69,20 @@ const FEATURE_GROUPS = [
 
 const ALL_COMMON = FEATURE_GROUPS.flatMap(g => g.features)
 
+function initPhotos(vehicle?: Vehicle): PhotoEntry[] {
+  return (vehicle?.images ?? []).map((url, i) => ({
+    key: `existing-${i}-${url.slice(-6)}`,
+    src: url,
+    isNew: false,
+  }))
+}
+
 export default function VehicleForm({ vehicle }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const isEdit = !!vehicle
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const dragIdx = useRef<number | null>(null)
 
   const [form, setForm] = useState({
     vin: vehicle?.vin ?? '',
@@ -95,13 +109,12 @@ export default function VehicleForm({ vehicle }: Props) {
   const [customFeature, setCustomFeature] = useState('')
   const [showCustomInput, setShowCustomInput] = useState(false)
 
+  const [photos, setPhotos] = useState<PhotoEntry[]>(() => initPhotos(vehicle))
+  const [thumbnailIndex, setThumbnailIndex] = useState(vehicle?.thumbnail_index ?? 0)
+  const [dragOver, setDragOver] = useState<number | null>(null)
+
   const [vinLoading, setVinLoading] = useState(false)
   const [vinError, setVinError] = useState('')
-  const [newFiles, setNewFiles] = useState<File[]>([])
-  const [newPreviews, setNewPreviews] = useState<string[]>([])
-  const [existingImages, setExistingImages] = useState<string[]>(vehicle?.images ?? [])
-  const [thumbnailIndex, setThumbnailIndex] = useState(vehicle?.thumbnail_index ?? 0)
-  const [showPhotoEditor, setShowPhotoEditor] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -146,72 +159,79 @@ export default function VehicleForm({ vehicle }: Props) {
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
     if (!files.length) return
-    setNewFiles(prev => [...prev, ...files])
-    files.forEach(f => {
+    const entries: PhotoEntry[] = files.map((file, i) => ({
+      key: `new-${Date.now()}-${i}`,
+      src: '',
+      isNew: true,
+      file,
+    }))
+    setPhotos(prev => [...prev, ...entries])
+    files.forEach((file, i) => {
       const reader = new FileReader()
-      reader.onload = ev => setNewPreviews(prev => [...prev, ev.target?.result as string])
-      reader.readAsDataURL(f)
+      reader.onload = ev =>
+        setPhotos(prev => prev.map(p =>
+          p.key === entries[i].key ? { ...p, src: ev.target?.result as string } : p
+        ))
+      reader.readAsDataURL(file)
     })
-    // Reset native input so its file count stays accurate
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  // ── Existing image operations ──
-
-  function moveExisting(i: number, dir: -1 | 1) {
-    const next = [...existingImages]
-    const j = i + dir
-    if (j < 0 || j >= next.length) return
-    ;[next[i], next[j]] = [next[j], next[i]]
-    if (thumbnailIndex === i) setThumbnailIndex(j)
-    else if (thumbnailIndex === j) setThumbnailIndex(i)
-    setExistingImages(next)
+  function removePhoto(idx: number) {
+    setPhotos(prev => prev.filter((_, i) => i !== idx))
+    if (thumbnailIndex === idx) setThumbnailIndex(0)
+    else if (thumbnailIndex > idx) setThumbnailIndex(t => t - 1)
   }
 
-  function removeExisting(i: number) {
-    const next = existingImages.filter((_, idx) => idx !== i)
-    setExistingImages(next)
-    if (thumbnailIndex === i) setThumbnailIndex(0)
-    else if (thumbnailIndex > i) setThumbnailIndex(t => t - 1)
+  // ── Drag-and-drop ──
+
+  function handleDragStart(idx: number) {
+    dragIdx.current = idx
   }
 
-  // ── New (pending) image operations ──
-
-  function moveNew(i: number, dir: -1 | 1) {
-    const j = i + dir
-    if (j < 0 || j >= newFiles.length) return
-    const nextFiles = [...newFiles]
-    const nextPrev = [...newPreviews]
-    ;[nextFiles[i], nextFiles[j]] = [nextFiles[j], nextFiles[i]]
-    ;[nextPrev[i], nextPrev[j]] = [nextPrev[j], nextPrev[i]]
-    const gI = existingImages.length + i
-    const gJ = existingImages.length + j
-    if (thumbnailIndex === gI) setThumbnailIndex(gJ)
-    else if (thumbnailIndex === gJ) setThumbnailIndex(gI)
-    setNewFiles(nextFiles)
-    setNewPreviews(nextPrev)
+  function handleDragOver(e: React.DragEvent, idx: number) {
+    e.preventDefault()
+    setDragOver(idx)
   }
 
-  function removeNew(i: number) {
-    const globalIdx = existingImages.length + i
-    setNewFiles(prev => prev.filter((_, idx) => idx !== i))
-    setNewPreviews(prev => prev.filter((_, idx) => idx !== i))
-    if (thumbnailIndex === globalIdx) setThumbnailIndex(0)
-    else if (thumbnailIndex > globalIdx) setThumbnailIndex(t => t - 1)
+  function handleDrop(e: React.DragEvent, dropIdx: number) {
+    e.preventDefault()
+    const from = dragIdx.current
+    if (from === null || from === dropIdx) { setDragOver(null); return }
+    const next = [...photos]
+    const [moved] = next.splice(from, 1)
+    next.splice(dropIdx, 0, moved)
+    setPhotos(next)
+    if (thumbnailIndex === from) setThumbnailIndex(dropIdx)
+    else if (from < thumbnailIndex && dropIdx >= thumbnailIndex) setThumbnailIndex(t => t - 1)
+    else if (from > thumbnailIndex && dropIdx <= thumbnailIndex) setThumbnailIndex(t => t + 1)
+    dragIdx.current = null
+    setDragOver(null)
   }
 
-  async function uploadImages(vehicleId: string): Promise<string[]> {
-    const urls: string[] = []
-    for (const file of newFiles) {
-      const ext = file.name.split('.').pop()
-      const path = `${vehicleId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const { error } = await supabase.storage.from('vehicle-images').upload(path, file)
-      if (!error) {
-        const { data } = supabase.storage.from('vehicle-images').getPublicUrl(path)
-        urls.push(data.publicUrl)
+  function handleDragEnd() {
+    dragIdx.current = null
+    setDragOver(null)
+  }
+
+  // ── Upload & submit ──
+
+  async function uploadPhotos(vehicleId: string): Promise<string[]> {
+    const result: string[] = []
+    for (const photo of photos) {
+      if (!photo.isNew) {
+        result.push(photo.src)
+      } else if (photo.file) {
+        const ext = photo.file.name.split('.').pop()
+        const path = `${vehicleId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+        const { error } = await supabase.storage.from('vehicle-images').upload(path, photo.file)
+        if (!error) {
+          const { data } = supabase.storage.from('vehicle-images').getPublicUrl(path)
+          result.push(data.publicUrl)
+        }
       }
     }
-    return urls
+    return result
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -251,9 +271,8 @@ export default function VehicleForm({ vehicle }: Props) {
       vehicleId = data.id
     }
 
-    const newUrls = await uploadImages(vehicleId!)
-    const allImages = [...existingImages, ...newUrls]
-    await supabase.from('vehicles').update({ images: allImages, thumbnail_index: thumbnailIndex }).eq('id', vehicleId)
+    const orderedImages = await uploadPhotos(vehicleId!)
+    await supabase.from('vehicles').update({ images: orderedImages, thumbnail_index: thumbnailIndex }).eq('id', vehicleId)
 
     router.push('/dashboard')
     router.refresh()
@@ -266,7 +285,6 @@ export default function VehicleForm({ vehicle }: Props) {
     router.refresh()
   }
 
-  const totalImages = existingImages.length + newPreviews.length
   const customSelected = selectedFeatures.filter(f => !ALL_COMMON.includes(f))
 
   return (
@@ -282,8 +300,7 @@ export default function VehicleForm({ vehicle }: Props) {
             className={`${inputClass} flex-1 font-mono uppercase`}
           />
           <button type="button" onClick={lookupVin} disabled={vinLoading}
-            className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 whitespace-nowrap"
-          >
+            className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 whitespace-nowrap">
             {vinLoading ? 'Looking up…' : 'Auto-Fill'}
           </button>
         </div>
@@ -295,99 +312,70 @@ export default function VehicleForm({ vehicle }: Props) {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 className="font-semibold text-gray-900 mb-5">Vehicle Details</h3>
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelClass}>Year</label>
-            <input name="year" type="number" value={form.year} onChange={handleChange} placeholder="2022" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Make</label>
-            <input name="make" value={form.make} onChange={handleChange} placeholder="Toyota" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Model</label>
-            <input name="model" value={form.model} onChange={handleChange} placeholder="Camry" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Trim</label>
-            <input name="trim" value={form.trim} onChange={handleChange} placeholder="XSE" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Exterior Color</label>
-            <input name="color" value={form.color} onChange={handleChange} placeholder="Midnight Black" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Interior Color</label>
-            <input name="interior_color" value={form.interior_color} onChange={handleChange} placeholder="Black Leather" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Mileage</label>
-            <input name="mileage" type="number" value={form.mileage} onChange={handleChange} placeholder="45000" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Price ($)</label>
-            <input name="price" type="number" value={form.price} onChange={handleChange} placeholder="24500" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Engine</label>
-            <input name="engine" value={form.engine} onChange={handleChange} placeholder="3.5L V6" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Transmission</label>
+          <div><label className={labelClass}>Year</label>
+            <input name="year" type="number" value={form.year} onChange={handleChange} placeholder="2022" className={inputClass} /></div>
+          <div><label className={labelClass}>Make</label>
+            <input name="make" value={form.make} onChange={handleChange} placeholder="Toyota" className={inputClass} /></div>
+          <div><label className={labelClass}>Model</label>
+            <input name="model" value={form.model} onChange={handleChange} placeholder="Camry" className={inputClass} /></div>
+          <div><label className={labelClass}>Trim</label>
+            <input name="trim" value={form.trim} onChange={handleChange} placeholder="XSE" className={inputClass} /></div>
+          <div><label className={labelClass}>Exterior Color</label>
+            <input name="color" value={form.color} onChange={handleChange} placeholder="Midnight Black" className={inputClass} /></div>
+          <div><label className={labelClass}>Interior Color</label>
+            <input name="interior_color" value={form.interior_color} onChange={handleChange} placeholder="Black Leather" className={inputClass} /></div>
+          <div><label className={labelClass}>Mileage</label>
+            <input name="mileage" type="number" value={form.mileage} onChange={handleChange} placeholder="45000" className={inputClass} /></div>
+          <div><label className={labelClass}>Price ($)</label>
+            <input name="price" type="number" value={form.price} onChange={handleChange} placeholder="24500" className={inputClass} /></div>
+          <div><label className={labelClass}>Engine</label>
+            <input name="engine" value={form.engine} onChange={handleChange} placeholder="3.5L V6" className={inputClass} /></div>
+          <div><label className={labelClass}>Transmission</label>
             <select name="transmission" value={form.transmission} onChange={handleChange} className={inputClass}>
               <option value="">Select…</option>
               <option value="Automatic">Automatic</option>
               <option value="Manual">Manual</option>
               <option value="CVT">CVT</option>
               <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label className={labelClass}>Drivetrain</label>
+            </select></div>
+          <div><label className={labelClass}>Drivetrain</label>
             <select name="drivetrain" value={form.drivetrain} onChange={handleChange} className={inputClass}>
               <option value="">Select…</option>
               <option value="FWD">FWD</option>
               <option value="RWD">RWD</option>
               <option value="AWD">AWD</option>
               <option value="4WD">4WD</option>
-            </select>
-          </div>
-          <div>
-            <label className={labelClass}>Status</label>
+            </select></div>
+          <div><label className={labelClass}>Status</label>
             <select name="status" value={form.status} onChange={handleChange} className={inputClass}>
               <option value="available">Available</option>
               <option value="sold">Sold</option>
               <option value="sale">Sale / Discounted</option>
               <option value="clearance">Clearance</option>
-            </select>
-          </div>
+            </select></div>
           {(form.status === 'sale' || form.status === 'clearance') && (
             <div className="col-span-2">
               <label className={labelClass}>Sale Price ($) <span className="text-[#5BB8F5]">*</span></label>
               <input name="sale_price" type="number" value={form.sale_price}
                 onChange={handleChange} placeholder={form.price || 'Enter discounted price'}
-                className={`${inputClass} border-[#5BB8F5] focus:ring-[#5BB8F5]`}
-              />
+                className={`${inputClass} border-[#5BB8F5] focus:ring-[#5BB8F5]`} />
               <p className="text-xs text-zinc-400 mt-1">Original price will show crossed out. Sale price shown in green.</p>
             </div>
           )}
-          <div>
-            <label className={labelClass}>Title Status</label>
+          <div><label className={labelClass}>Title Status</label>
             <select name="title_status" value={form.title_status} onChange={handleChange} className={inputClass}>
               <option value="Clean">Clean</option>
               <option value="Salvage">Salvage</option>
               <option value="Rebuilt">Rebuilt / Reconstructed</option>
               <option value="Lien">Lien</option>
               <option value="Unknown">Unknown</option>
-            </select>
-          </div>
+            </select></div>
         </div>
-
         <div className="mt-4">
           <label className={labelClass}>Description</label>
           <textarea name="description" value={form.description} onChange={handleChange} rows={3}
             placeholder="Clean title, one owner, accident free…"
-            className={`${inputClass} resize-none`}
-          />
+            className={`${inputClass} resize-none`} />
         </div>
       </div>
 
@@ -400,7 +388,6 @@ export default function VehicleForm({ vehicle }: Props) {
           )}
         </div>
         <p className="text-xs text-gray-400 mb-5">Click badges to select. Use + Custom for anything not listed.</p>
-
         <div className="space-y-4">
           {FEATURE_GROUPS.map(group => (
             <div key={group.label}>
@@ -409,16 +396,10 @@ export default function VehicleForm({ vehicle }: Props) {
                 {group.features.map(feat => {
                   const active = selectedFeatures.includes(feat)
                   return (
-                    <button
-                      key={feat}
-                      type="button"
-                      onClick={() => toggleFeature(feat)}
+                    <button key={feat} type="button" onClick={() => toggleFeature(feat)}
                       className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-all ${
-                        active
-                          ? 'bg-[#5BB8F5] border-[#5BB8F5] text-white'
-                          : 'border-zinc-200 text-zinc-600 hover:border-[#5BB8F5] hover:text-[#5BB8F5] bg-white'
-                      }`}
-                    >
+                        active ? 'bg-[#5BB8F5] border-[#5BB8F5] text-white' : 'border-zinc-200 text-zinc-600 hover:border-[#5BB8F5] hover:text-[#5BB8F5] bg-white'
+                      }`}>
                       {active && '✓ '}{feat}
                     </button>
                   )
@@ -426,7 +407,6 @@ export default function VehicleForm({ vehicle }: Props) {
               </div>
             </div>
           ))}
-
           <div>
             <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wide mb-2">Custom</p>
             <div className="flex flex-wrap gap-2 items-center">
@@ -440,33 +420,19 @@ export default function VehicleForm({ vehicle }: Props) {
               ))}
               {showCustomInput ? (
                 <div className="flex items-center gap-2">
-                  <input
-                    autoFocus
-                    type="text"
-                    value={customFeature}
+                  <input autoFocus type="text" value={customFeature}
                     onChange={e => setCustomFeature(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') { e.preventDefault(); addCustomFeature() }
-                      if (e.key === 'Escape') { setShowCustomInput(false); setCustomFeature('') }
-                    }}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomFeature() } if (e.key === 'Escape') { setShowCustomInput(false); setCustomFeature('') } }}
                     placeholder="e.g. Lift Kit, Bull Bar…"
-                    className="border border-[#5BB8F5] rounded-full px-3 py-1 text-xs text-gray-900 bg-white focus:outline-none w-40"
-                  />
+                    className="border border-[#5BB8F5] rounded-full px-3 py-1 text-xs text-gray-900 bg-white focus:outline-none w-40" />
                   <button type="button" onClick={addCustomFeature}
-                    className="text-xs bg-[#5BB8F5] text-white px-3 py-1 rounded-full font-medium hover:bg-[#3A9FE0]">
-                    Add
-                  </button>
+                    className="text-xs bg-[#5BB8F5] text-white px-3 py-1 rounded-full font-medium hover:bg-[#3A9FE0]">Add</button>
                   <button type="button" onClick={() => { setShowCustomInput(false); setCustomFeature('') }}
-                    className="text-xs text-zinc-400 hover:text-zinc-600">
-                    Cancel
-                  </button>
+                    className="text-xs text-zinc-400 hover:text-zinc-600">Cancel</button>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowCustomInput(true)}
-                  className="text-xs px-3 py-1.5 rounded-full border border-dashed border-zinc-300 text-zinc-400 hover:border-[#5BB8F5] hover:text-[#5BB8F5] flex items-center gap-1 transition-colors"
-                >
+                <button type="button" onClick={() => setShowCustomInput(true)}
+                  className="text-xs px-3 py-1.5 rounded-full border border-dashed border-zinc-300 text-zinc-400 hover:border-[#5BB8F5] hover:text-[#5BB8F5] flex items-center gap-1 transition-colors">
                   <Plus className="w-3 h-3" /> Add Custom
                 </button>
               )}
@@ -477,19 +443,14 @@ export default function VehicleForm({ vehicle }: Props) {
 
       {/* Photos */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="font-semibold text-gray-900">Photos</h3>
-            {totalImages > 0 && (
-              <p className="text-xs text-gray-400 mt-0.5">{totalImages} photo{totalImages !== 1 ? 's' : ''} · hover to set thumbnail or remove</p>
-            )}
-          </div>
-          {totalImages > 1 && (
-            <button type="button" onClick={() => setShowPhotoEditor(true)}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-            >
-              Organize Photos
-            </button>
+        <div className="mb-4">
+          <h3 className="font-semibold text-gray-900">Photos</h3>
+          {photos.length > 0 ? (
+            <p className="text-xs text-gray-400 mt-0.5">
+              {photos.length} photo{photos.length !== 1 ? 's' : ''} · drag to reorder · hover to set thumbnail or remove
+            </p>
+          ) : (
+            <p className="text-xs text-gray-400 mt-0.5">Add photos below</p>
           )}
         </div>
 
@@ -502,47 +463,58 @@ export default function VehicleForm({ vehicle }: Props) {
           className="text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-black file:text-white file:text-sm file:font-medium hover:file:bg-gray-800 cursor-pointer mb-4"
         />
 
-        {totalImages > 0 && (
+        {photos.length > 0 && (
           <div className="grid grid-cols-4 gap-2 mt-2">
-            {/* Existing (already uploaded) */}
-            {existingImages.map((url, i) => {
+            {photos.map((photo, i) => {
               const isThumb = thumbnailIndex === i
+              const loading = photo.isNew && !photo.src
               return (
-                <div key={url} className={`relative group rounded-lg overflow-hidden border-2 ${isThumb ? 'border-yellow-400' : 'border-transparent'}`}>
-                  <img src={url} className="w-full aspect-square object-cover" alt="" />
-                  {isThumb && (
-                    <div className="absolute top-1 left-1 bg-yellow-400 text-black text-xs font-bold px-1 rounded">THUMB</div>
+                <div
+                  key={photo.key}
+                  draggable
+                  onDragStart={() => handleDragStart(i)}
+                  onDragOver={e => handleDragOver(e, i)}
+                  onDrop={e => handleDrop(e, i)}
+                  onDragEnd={handleDragEnd}
+                  className={`relative group rounded-lg overflow-hidden border-2 cursor-grab active:cursor-grabbing transition-all duration-150 ${
+                    dragOver === i
+                      ? 'border-[#5BB8F5] scale-95 opacity-60'
+                      : isThumb
+                      ? 'border-yellow-400'
+                      : photo.isNew
+                      ? 'border-[#5BB8F5]/50'
+                      : 'border-transparent'
+                  }`}
+                >
+                  {loading ? (
+                    <div className="w-full aspect-square bg-zinc-100 flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-[#5BB8F5] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  ) : (
+                    <img
+                      src={photo.src}
+                      draggable={false}
+                      className="w-full aspect-square object-cover object-bottom"
+                      alt=""
+                    />
                   )}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+
+                  {/* Badge */}
+                  {(isThumb || photo.isNew) && (
+                    <div className={`absolute top-1 left-1 text-xs font-bold px-1.5 py-0.5 rounded ${
+                      isThumb ? 'bg-yellow-400 text-black' : 'bg-[#5BB8F5] text-white'
+                    }`}>
+                      {isThumb ? 'THUMB' : 'NEW'}
+                    </div>
+                  )}
+
+                  {/* Hover controls */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
                     <button type="button" onClick={() => setThumbnailIndex(i)} title="Set as thumbnail"
                       className="bg-yellow-400 text-black rounded-full p-1.5">
                       <Star className="w-3.5 h-3.5" />
                     </button>
-                    <button type="button" onClick={() => removeExisting(i)}
-                      className="bg-red-600 text-white rounded-full p-1.5">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-
-            {/* New (pending upload) */}
-            {newPreviews.map((src, i) => {
-              const globalIdx = existingImages.length + i
-              const isThumb = thumbnailIndex === globalIdx
-              return (
-                <div key={i} className={`relative group rounded-lg overflow-hidden border-2 ${isThumb ? 'border-yellow-400' : 'border-[#5BB8F5]/60'}`}>
-                  <img src={src} className="w-full aspect-square object-cover" alt="" />
-                  <div className={`absolute top-1 left-1 text-xs font-bold px-1 rounded ${isThumb ? 'bg-yellow-400 text-black' : 'bg-[#5BB8F5] text-white'}`}>
-                    {isThumb ? 'THUMB' : 'NEW'}
-                  </div>
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
-                    <button type="button" onClick={() => setThumbnailIndex(globalIdx)} title="Set as thumbnail"
-                      className="bg-yellow-400 text-black rounded-full p-1.5">
-                      <Star className="w-3.5 h-3.5" />
-                    </button>
-                    <button type="button" onClick={() => removeNew(i)}
+                    <button type="button" onClick={() => removePhoto(i)}
                       className="bg-red-600 text-white rounded-full p-1.5">
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -558,110 +530,17 @@ export default function VehicleForm({ vehicle }: Props) {
 
       <div className="flex items-center gap-4">
         <button type="submit" disabled={saving}
-          className="bg-black text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-800 disabled:opacity-50"
-        >
+          className="bg-black text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-800 disabled:opacity-50">
           {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Vehicle'}
         </button>
         <button type="button" onClick={() => router.back()} className="text-sm text-gray-500 hover:text-gray-700">Cancel</button>
         {isEdit && (
           <button type="button" onClick={deleteVehicle}
-            className="ml-auto text-sm text-red-600 hover:text-red-800 font-medium"
-          >Delete Vehicle</button>
+            className="ml-auto text-sm text-red-600 hover:text-red-800 font-medium">
+            Delete Vehicle
+          </button>
         )}
       </div>
-
-      {/* Photo organizer modal — shows ALL photos (existing + new) */}
-      {showPhotoEditor && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900 text-lg">Organize Photos</h3>
-              <button onClick={() => setShowPhotoEditor(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">Reorder with arrows · Star sets thumbnail · X removes.</p>
-
-            <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-              {/* Existing images */}
-              {existingImages.map((url, i) => {
-                const isThumb = thumbnailIndex === i
-                return (
-                  <div key={url} className={`flex items-center gap-3 p-2 rounded-lg border ${isThumb ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200'}`}>
-                    <img src={url} className="w-14 h-14 object-cover rounded-lg shrink-0" alt="" />
-                    <div className="flex-1 text-sm text-gray-600 min-w-0">
-                      <span>Photo {i + 1}</span>
-                      {isThumb && <span className="ml-1 text-xs text-yellow-600 font-semibold">· Thumbnail</span>}
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button type="button" onClick={() => setThumbnailIndex(i)}
-                        className={`p-1.5 rounded-full ${isThumb ? 'bg-yellow-400 text-black' : 'bg-gray-100 text-gray-500 hover:bg-yellow-100'}`}>
-                        <Star className="w-3.5 h-3.5" />
-                      </button>
-                      <button type="button" onClick={() => moveExisting(i, -1)} disabled={i === 0}
-                        className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-30">
-                        <ChevronLeft className="w-3.5 h-3.5" />
-                      </button>
-                      <button type="button" onClick={() => moveExisting(i, 1)} disabled={i === existingImages.length - 1}
-                        className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-30">
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                      <button type="button" onClick={() => removeExisting(i)}
-                        className="p-1.5 rounded-full bg-red-50 text-red-500 hover:bg-red-100">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-
-              {/* New (pending) images */}
-              {newPreviews.map((src, i) => {
-                const globalIdx = existingImages.length + i
-                const isThumb = thumbnailIndex === globalIdx
-                return (
-                  <div key={`new-${i}`} className={`flex items-center gap-3 p-2 rounded-lg border ${isThumb ? 'border-yellow-400 bg-yellow-50' : 'border-[#5BB8F5]/30 bg-sky-50/40'}`}>
-                    <img src={src} className="w-14 h-14 object-cover rounded-lg shrink-0" alt="" />
-                    <div className="flex-1 text-sm text-gray-600 min-w-0">
-                      <span>New photo {i + 1}</span>
-                      <span className="ml-1 text-xs text-[#5BB8F5] font-semibold">· Pending</span>
-                      {isThumb && <span className="ml-1 text-xs text-yellow-600 font-semibold">· Thumbnail</span>}
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button type="button" onClick={() => setThumbnailIndex(globalIdx)}
-                        className={`p-1.5 rounded-full ${isThumb ? 'bg-yellow-400 text-black' : 'bg-gray-100 text-gray-500 hover:bg-yellow-100'}`}>
-                        <Star className="w-3.5 h-3.5" />
-                      </button>
-                      <button type="button" onClick={() => moveNew(i, -1)} disabled={i === 0}
-                        className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-30">
-                        <ChevronLeft className="w-3.5 h-3.5" />
-                      </button>
-                      <button type="button" onClick={() => moveNew(i, 1)} disabled={i === newPreviews.length - 1}
-                        className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-30">
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                      <button type="button" onClick={() => removeNew(i)}
-                        className="p-1.5 rounded-full bg-red-50 text-red-500 hover:bg-red-100">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-
-              {existingImages.length === 0 && newPreviews.length === 0 && (
-                <p className="text-sm text-gray-400 text-center py-8">No photos added yet.</p>
-              )}
-            </div>
-
-            <button onClick={() => setShowPhotoEditor(false)}
-              className="mt-4 w-full bg-black text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-800"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
     </form>
   )
 }
