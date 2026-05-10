@@ -55,10 +55,14 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
             <dl className="grid grid-cols-2 gap-3 text-sm mb-6">
               {[
                 ['Mileage', `${vehicle.mileage?.toLocaleString()} mi`],
-                ['Color', vehicle.color],
+                ['Exterior Color', vehicle.color],
+                ['Transmission', vehicle.transmission],
+                ['Drivetrain', vehicle.drivetrain],
+                ['Engine', vehicle.engine],
+                ['Title', vehicle.title_status || 'Clean'],
                 ['VIN', vehicle.vin],
                 ['Year', vehicle.year],
-              ].map(([label, value]) => (
+              ].filter(([, v]) => v).map(([label, value]) => (
                 <div key={label as string} className="bg-gray-50 rounded-lg px-4 py-3">
                   <dt className="text-gray-400 text-xs mb-1">{label}</dt>
                   <dd className="font-medium text-gray-900 font-mono text-xs">{value}</dd>

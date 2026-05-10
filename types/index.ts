@@ -17,6 +17,7 @@ export type Vehicle = {
   drivetrain: string
   engine: string
   features: string
+  title_status: string
   images: string[]
   thumbnail_index: number
   created_at: string

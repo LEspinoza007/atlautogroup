@@ -37,6 +37,7 @@ export default function VehicleForm({ vehicle }: Props) {
     drivetrain: vehicle?.drivetrain ?? '',
     engine: vehicle?.engine ?? '',
     features: vehicle?.features ?? '',
+    title_status: vehicle?.title_status ?? 'Clean',
     description: vehicle?.description ?? '',
   })
 
@@ -137,6 +138,7 @@ export default function VehicleForm({ vehicle }: Props) {
       drivetrain: form.drivetrain,
       engine: form.engine,
       features: form.features,
+      title_status: form.title_status,
       description: form.description,
       thumbnail_index: thumbnailIndex,
     }
@@ -256,6 +258,16 @@ export default function VehicleForm({ vehicle }: Props) {
             <select name="status" value={form.status} onChange={handleChange} className={inputClass}>
               <option value="available">Available</option>
               <option value="sold">Sold</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Title Status</label>
+            <select name="title_status" value={form.title_status} onChange={handleChange} className={inputClass}>
+              <option value="Clean">Clean</option>
+              <option value="Salvage">Salvage</option>
+              <option value="Rebuilt">Rebuilt / Reconstructed</option>
+              <option value="Lien">Lien</option>
+              <option value="Unknown">Unknown</option>
             </select>
           </div>
         </div>
