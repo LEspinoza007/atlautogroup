@@ -4,18 +4,65 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Vehicle, VehicleStatus } from '@/types'
-import { Star, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Star, X, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 
 type Props = { vehicle?: Vehicle }
 
 const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-black placeholder-gray-400"
 const labelClass = "block text-sm font-medium text-gray-700 mb-1"
 
-const EMPTY_FORM = {
-  vin: '', year: '', make: '', model: '', trim: '', color: '', interior_color: '',
-  mileage: '', price: '', status: 'available' as VehicleStatus,
-  transmission: '', drivetrain: '', engine: '', features: '', description: '',
-}
+const FEATURE_GROUPS = [
+  {
+    label: 'Technology',
+    features: [
+      'Apple CarPlay', 'Android Auto', 'Bluetooth', 'USB Ports', 'Wireless Charging',
+      'Navigation System', 'Wi-Fi Hotspot', 'Heads-Up Display', 'Premium Sound System',
+      'Satellite Radio', 'Digital Cluster', 'Rear Seat Entertainment',
+    ],
+  },
+  {
+    label: 'Safety & Driver Assist',
+    features: [
+      'Backup Camera', '360° Camera', 'Blind Spot Monitor', 'Lane Keep Assist',
+      'Lane Departure Warning', 'Forward Collision Warning', 'Automatic Emergency Braking',
+      'Adaptive Cruise Control', 'Parking Sensors', 'Rear Cross Traffic Alert',
+      'Driver Attention Monitor', 'Night Vision',
+    ],
+  },
+  {
+    label: 'Comfort & Convenience',
+    features: [
+      'Heated Front Seats', 'Heated Rear Seats', 'Ventilated / Cooled Seats',
+      'Leather Seats', 'Memory Seats', 'Power Driver Seat', 'Power Passenger Seat',
+      'Remote Start', 'Keyless Entry', 'Push Button Start', 'Power Liftgate',
+      'Hands-Free Liftgate', 'Heated Steering Wheel', 'Tinted Windows',
+      'Ambient Lighting', 'Auto-Dimming Mirror', 'Rain-Sensing Wipers',
+    ],
+  },
+  {
+    label: 'Sunroof & Views',
+    features: [
+      'Sunroof / Moonroof', 'Panoramic Sunroof', 'Power Sunshade',
+    ],
+  },
+  {
+    label: 'Exterior & Wheels',
+    features: [
+      'Alloy Wheels', 'LED Headlights', 'LED Taillights', 'Fog Lights',
+      'Power Folding Mirrors', 'Heated Mirrors', 'Chrome Trim', 'Running Boards',
+      'Roof Rack', 'Spoiler',
+    ],
+  },
+  {
+    label: 'Utility & Towing',
+    features: [
+      'Tow Package', 'Bed Liner', 'Tonneau Cover', 'Skid Plates',
+      'Locking Rear Differential', 'Spare Tire', 'Trailer Brake Controller',
+    ],
+  },
+]
+
+const ALL_COMMON = FEATURE_GROUPS.flatMap(g => g.features)
 
 export default function VehicleForm({ vehicle }: Props) {
   const router = useRouter()
@@ -32,15 +79,20 @@ export default function VehicleForm({ vehicle }: Props) {
     interior_color: vehicle?.interior_color ?? '',
     mileage: vehicle?.mileage?.toString() ?? '',
     price: vehicle?.price?.toString() ?? '',
-    status: vehicle?.status ?? 'available',
+    status: (vehicle?.status ?? 'available') as VehicleStatus,
     transmission: vehicle?.transmission ?? '',
     drivetrain: vehicle?.drivetrain ?? '',
     engine: vehicle?.engine ?? '',
-    features: vehicle?.features ?? '',
     title_status: vehicle?.title_status ?? 'Clean',
     sale_price: vehicle?.sale_price?.toString() ?? '',
     description: vehicle?.description ?? '',
   })
+
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(
+    vehicle?.features ? vehicle.features.split(',').map(f => f.trim()).filter(Boolean) : []
+  )
+  const [customFeature, setCustomFeature] = useState('')
+  const [showCustomInput, setShowCustomInput] = useState(false)
 
   const [vinLoading, setVinLoading] = useState(false)
   const [vinError, setVinError] = useState('')
@@ -54,6 +106,21 @@ export default function VehicleForm({ vehicle }: Props) {
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
+  function toggleFeature(feat: string) {
+    setSelectedFeatures(prev =>
+      prev.includes(feat) ? prev.filter(f => f !== feat) : [...prev, feat]
+    )
+  }
+
+  function addCustomFeature() {
+    const trimmed = customFeature.trim()
+    if (trimmed && !selectedFeatures.includes(trimmed)) {
+      setSelectedFeatures(prev => [...prev, trimmed])
+    }
+    setCustomFeature('')
+    setShowCustomInput(false)
   }
 
   async function lookupVin() {
@@ -138,7 +205,7 @@ export default function VehicleForm({ vehicle }: Props) {
       transmission: form.transmission,
       drivetrain: form.drivetrain,
       engine: form.engine,
-      features: form.features,
+      features: selectedFeatures.join(', '),
       title_status: form.title_status,
       sale_price: (form.status === 'sale' || form.status === 'clearance') && form.sale_price ? parseFloat(form.sale_price) : null,
       is_sale: form.status === 'sale' || form.status === 'clearance',
@@ -173,6 +240,7 @@ export default function VehicleForm({ vehicle }: Props) {
   }
 
   const allImages = [...existingImages, ...newPreviews]
+  const customSelected = selectedFeatures.filter(f => !ALL_COMMON.includes(f))
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
@@ -288,18 +356,97 @@ export default function VehicleForm({ vehicle }: Props) {
         </div>
 
         <div className="mt-4">
-          <label className={labelClass}>Accessories & Features</label>
-          <input name="features" value={form.features} onChange={handleChange}
-            placeholder="Sunroof, backup camera, heated seats, Apple CarPlay…"
-            className={inputClass}
-          />
-        </div>
-        <div className="mt-4">
           <label className={labelClass}>Description</label>
           <textarea name="description" value={form.description} onChange={handleChange} rows={3}
             placeholder="Clean title, one owner, accident free…"
             className={`${inputClass} resize-none`}
           />
+        </div>
+      </div>
+
+      {/* Features */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="font-semibold text-gray-900">Features & Accessories</h3>
+          {selectedFeatures.length > 0 && (
+            <span className="text-xs text-[#5BB8F5] font-medium">{selectedFeatures.length} selected</span>
+          )}
+        </div>
+        <p className="text-xs text-gray-400 mb-5">Click badges to select. Use + Custom for anything not listed.</p>
+
+        <div className="space-y-4">
+          {FEATURE_GROUPS.map(group => (
+            <div key={group.label}>
+              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wide mb-2">{group.label}</p>
+              <div className="flex flex-wrap gap-2">
+                {group.features.map(feat => {
+                  const active = selectedFeatures.includes(feat)
+                  return (
+                    <button
+                      key={feat}
+                      type="button"
+                      onClick={() => toggleFeature(feat)}
+                      className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-all ${
+                        active
+                          ? 'bg-[#5BB8F5] border-[#5BB8F5] text-white'
+                          : 'border-zinc-200 text-zinc-600 hover:border-[#5BB8F5] hover:text-[#5BB8F5] bg-white'
+                      }`}
+                    >
+                      {active && '✓ '}{feat}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Custom features row */}
+          <div>
+            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wide mb-2">Custom</p>
+            <div className="flex flex-wrap gap-2 items-center">
+              {customSelected.map(feat => (
+                <span key={feat} className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-[#5BB8F5] border border-[#5BB8F5] text-white font-medium">
+                  {feat}
+                  <button type="button" onClick={() => toggleFeature(feat)} className="hover:text-white/70 ml-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+
+              {showCustomInput ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    autoFocus
+                    type="text"
+                    value={customFeature}
+                    onChange={e => setCustomFeature(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') { e.preventDefault(); addCustomFeature() }
+                      if (e.key === 'Escape') { setShowCustomInput(false); setCustomFeature('') }
+                    }}
+                    placeholder="e.g. Lift Kit, Bull Bar…"
+                    className="border border-[#5BB8F5] rounded-full px-3 py-1 text-xs text-gray-900 bg-white focus:outline-none w-40"
+                  />
+                  <button type="button" onClick={addCustomFeature}
+                    className="text-xs bg-[#5BB8F5] text-white px-3 py-1 rounded-full font-medium hover:bg-[#3A9FE0]">
+                    Add
+                  </button>
+                  <button type="button" onClick={() => { setShowCustomInput(false); setCustomFeature('') }}
+                    className="text-xs text-zinc-400 hover:text-zinc-600">
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowCustomInput(true)}
+                  className="text-xs px-3 py-1.5 rounded-full border border-dashed border-zinc-300 text-zinc-400 hover:border-[#5BB8F5] hover:text-[#5BB8F5] flex items-center gap-1 transition-colors"
+                >
+                  <Plus className="w-3 h-3" /> Add Custom
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

@@ -12,7 +12,7 @@ export default function AdminNav({ userEmail }: { userEmail: string }) {
 
   async function handleSignOut() {
     await supabase.auth.signOut()
-    router.push('/login')
+    router.push('/')
   }
 
   const navLink = (href: string, label: string, Icon: React.ElementType) => (
