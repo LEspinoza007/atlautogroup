@@ -9,6 +9,14 @@ export async function lookupVin(vin: string): Promise<VinData | null> {
     const result = data.Results?.[0]
     if (!result || result.ErrorCode !== '0') return null
 
+    const rawTransmission = (result.TransmissionStyle || '').toLowerCase()
+    let transmission = result.TransmissionStyle || ''
+    if (rawTransmission.includes('manual') || rawTransmission.includes('standard')) {
+      transmission = 'Manual'
+    } else if (rawTransmission.includes('auto') || rawTransmission.includes('cvt') || rawTransmission.includes('continuously')) {
+      transmission = rawTransmission.includes('cvt') || rawTransmission.includes('continuously') ? 'CVT' : 'Automatic'
+    }
+
     return {
       year: result.ModelYear || '',
       make: result.Make || '',
@@ -17,7 +25,7 @@ export async function lookupVin(vin: string): Promise<VinData | null> {
       engine: result.DisplacementL
         ? `${parseFloat(result.DisplacementL).toFixed(1)}L ${result.EngineCylinders}-cyl`
         : '',
-      transmission: result.TransmissionStyle || '',
+      transmission,
       drivetrain: result.DriveType || '',
       body_type: result.BodyClass || '',
     }

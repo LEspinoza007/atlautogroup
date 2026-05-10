@@ -8,11 +8,17 @@ export type Vehicle = {
   model: string
   trim: string
   color: string
+  interior_color: string
   mileage: number
   price: number
   status: VehicleStatus
   description: string
+  transmission: string
+  drivetrain: string
+  engine: string
+  features: string
   images: string[]
+  thumbnail_index: number
   created_at: string
   updated_at: string
 }
