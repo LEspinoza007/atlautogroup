@@ -30,12 +30,13 @@ function formatDate(d: string) {
   return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
 }
 
-const inputClass = "w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500"
+const inputClass = "w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#5BB8F5]"
 
 export default function AppointmentDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient()
   const router = useRouter()
   const [apt, setApt] = useState<any>(null)
+  const [vehicle, setVehicle] = useState<any>(null)
   const [hours, setHours] = useState<BusinessHours[]>([])
   const [blackouts, setBlackouts] = useState<BlackoutDate[]>([])
   const [rescheduling, setRescheduling] = useState(false)
@@ -43,21 +44,47 @@ export default function AppointmentDetailPage({ params }: { params: { id: string
   const [newTime, setNewTime] = useState('')
   const [status, setStatus] = useState('')
   const [saving, setSaving] = useState(false)
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     async function load() {
       const [{ data: a }, { data: h }, { data: b }] = await Promise.all([
-        supabase.from('appointments').select('*, vehicles(id, year, make, model)').eq('id', params.id).single(),
+        supabase.from('appointments').select('*').eq('id', params.id).single(),
         supabase.from('business_hours').select('*').order('day_of_week'),
         supabase.from('blackout_dates').select('*'),
       ])
-      setApt(a); setHours(h ?? []); setBlackouts(b ?? [])
-      setStatus(a?.status ?? '')
+
+      if (!a) { setLoadError(true); return }
+
+      setApt(a)
+      setHours(h ?? [])
+      setBlackouts(b ?? [])
+      setStatus(a.status ?? '')
+
+      if (a.vehicle_id) {
+        const { data: v } = await supabase
+          .from('vehicles')
+          .select('id, year, make, model')
+          .eq('id', a.vehicle_id)
+          .single()
+        setVehicle(v ?? null)
+      }
     }
     load()
   }, [params.id])
 
-  if (!apt) return <div className="text-zinc-400 text-sm py-10 text-center">Loading…</div>
+  if (loadError) return (
+    <div className="text-center py-16">
+      <p className="text-zinc-500 text-sm mb-3">Could not load this appointment.</p>
+      <Link href="/dashboard/appointments" className="text-[#5BB8F5] hover:underline text-sm">← Back to Appointments</Link>
+    </div>
+  )
+
+  if (!apt) return (
+    <div className="flex items-center justify-center py-16">
+      <div className="w-6 h-6 border-2 border-[#5BB8F5] border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
 
   const blackoutSet = new Set(blackouts.map(b => b.date))
 
@@ -76,7 +103,7 @@ export default function AppointmentDetailPage({ params }: { params: { id: string
     setSaving(true)
     await supabase.from('appointments').update({ status }).eq('id', apt.id)
     setSaving(false)
-    router.refresh()
+    setApt((p: any) => ({ ...p, status }))
   }
 
   async function handleReschedule() {
@@ -131,17 +158,17 @@ export default function AppointmentDetailPage({ params }: { params: { id: string
           <div>
             <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wide mb-1">Scheduled</p>
             <div className="flex items-center gap-1 text-zinc-900 font-medium">
-              <Calendar className="w-4 h-4 text-rose-400" />
+              <Calendar className="w-4 h-4 text-[#5BB8F5]" />
               {formatDate(apt.appointment_date)} at {formatTime(apt.appointment_time)}
             </div>
           </div>
           <div>
             <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wide mb-1">Vehicle</p>
-            {apt.vehicles ? (
-              <Link href={`/inventory/${apt.vehicles.id}`} target="_blank"
+            {vehicle ? (
+              <Link href={`/inventory/${vehicle.id}`} target="_blank"
                 className="flex items-center gap-1 text-blue-600 hover:underline font-medium text-sm">
                 <ExternalLink className="w-3.5 h-3.5" />
-                {apt.vehicles.year} {apt.vehicles.make} {apt.vehicles.model}
+                {vehicle.year} {vehicle.make} {vehicle.model}
               </Link>
             ) : <span className="text-zinc-400">—</span>}
           </div>
@@ -196,7 +223,7 @@ export default function AppointmentDetailPage({ params }: { params: { id: string
                 </div>
               </div>
               <button onClick={handleReschedule} disabled={!newDate || !newTime || saving}
-                className="bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors">
+                className="bg-[#5BB8F5] hover:bg-[#3A9FE0] disabled:opacity-40 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-colors">
                 {saving ? 'Saving…' : 'Confirm Reschedule'}
               </button>
             </div>
