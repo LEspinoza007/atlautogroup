@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Vehicle, VehicleStatus } from '@/types'
@@ -68,6 +68,7 @@ export default function VehicleForm({ vehicle }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const isEdit = !!vehicle
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState({
     vin: vehicle?.vin ?? '',
@@ -144,13 +145,18 @@ export default function VehicleForm({ vehicle }: Props) {
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
+    if (!files.length) return
     setNewFiles(prev => [...prev, ...files])
     files.forEach(f => {
       const reader = new FileReader()
       reader.onload = ev => setNewPreviews(prev => [...prev, ev.target?.result as string])
       reader.readAsDataURL(f)
     })
+    // Reset native input so its file count stays accurate
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
+
+  // ── Existing image operations ──
 
   function moveExisting(i: number, dir: -1 | 1) {
     const next = [...existingImages]
@@ -165,12 +171,33 @@ export default function VehicleForm({ vehicle }: Props) {
   function removeExisting(i: number) {
     const next = existingImages.filter((_, idx) => idx !== i)
     setExistingImages(next)
-    if (thumbnailIndex >= next.length) setThumbnailIndex(Math.max(0, next.length - 1))
+    if (thumbnailIndex === i) setThumbnailIndex(0)
+    else if (thumbnailIndex > i) setThumbnailIndex(t => t - 1)
+  }
+
+  // ── New (pending) image operations ──
+
+  function moveNew(i: number, dir: -1 | 1) {
+    const j = i + dir
+    if (j < 0 || j >= newFiles.length) return
+    const nextFiles = [...newFiles]
+    const nextPrev = [...newPreviews]
+    ;[nextFiles[i], nextFiles[j]] = [nextFiles[j], nextFiles[i]]
+    ;[nextPrev[i], nextPrev[j]] = [nextPrev[j], nextPrev[i]]
+    const gI = existingImages.length + i
+    const gJ = existingImages.length + j
+    if (thumbnailIndex === gI) setThumbnailIndex(gJ)
+    else if (thumbnailIndex === gJ) setThumbnailIndex(gI)
+    setNewFiles(nextFiles)
+    setNewPreviews(nextPrev)
   }
 
   function removeNew(i: number) {
+    const globalIdx = existingImages.length + i
     setNewFiles(prev => prev.filter((_, idx) => idx !== i))
     setNewPreviews(prev => prev.filter((_, idx) => idx !== i))
+    if (thumbnailIndex === globalIdx) setThumbnailIndex(0)
+    else if (thumbnailIndex > globalIdx) setThumbnailIndex(t => t - 1)
   }
 
   async function uploadImages(vehicleId: string): Promise<string[]> {
@@ -239,7 +266,7 @@ export default function VehicleForm({ vehicle }: Props) {
     router.refresh()
   }
 
-  const allImages = [...existingImages, ...newPreviews]
+  const totalImages = existingImages.length + newPreviews.length
   const customSelected = selectedFeatures.filter(f => !ALL_COMMON.includes(f))
 
   return (
@@ -400,7 +427,6 @@ export default function VehicleForm({ vehicle }: Props) {
             </div>
           ))}
 
-          {/* Custom features row */}
           <div>
             <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wide mb-2">Custom</p>
             <div className="flex flex-wrap gap-2 items-center">
@@ -412,7 +438,6 @@ export default function VehicleForm({ vehicle }: Props) {
                   </button>
                 </span>
               ))}
-
               {showCustomInput ? (
                 <div className="flex items-center gap-2">
                   <input
@@ -453,8 +478,13 @@ export default function VehicleForm({ vehicle }: Props) {
       {/* Photos */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-gray-900">Photos</h3>
-          {allImages.length > 1 && (
+          <div>
+            <h3 className="font-semibold text-gray-900">Photos</h3>
+            {totalImages > 0 && (
+              <p className="text-xs text-gray-400 mt-0.5">{totalImages} photo{totalImages !== 1 ? 's' : ''} · hover to set thumbnail or remove</p>
+            )}
+          </div>
+          {totalImages > 1 && (
             <button type="button" onClick={() => setShowPhotoEditor(true)}
               className="text-sm text-blue-600 hover:text-blue-800 font-medium"
             >
@@ -463,43 +493,65 @@ export default function VehicleForm({ vehicle }: Props) {
           )}
         </div>
 
-        <input type="file" accept="image/*" multiple onChange={handleFileSelect}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleFileSelect}
           className="text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-black file:text-white file:text-sm file:font-medium hover:file:bg-gray-800 cursor-pointer mb-4"
         />
 
-        {allImages.length > 0 && (
+        {totalImages > 0 && (
           <div className="grid grid-cols-4 gap-2 mt-2">
-            {existingImages.map((url, i) => (
-              <div key={url} className={`relative group rounded-lg overflow-hidden border-2 ${i === thumbnailIndex ? 'border-yellow-400' : 'border-transparent'}`}>
-                <img src={url} className="w-full aspect-square object-cover" alt="" />
-                {i === thumbnailIndex && (
-                  <div className="absolute top-1 left-1 bg-yellow-400 text-black text-xs font-bold px-1 rounded">THUMB</div>
-                )}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
-                  <button type="button" onClick={() => setThumbnailIndex(i)} title="Set as thumbnail"
-                    className="bg-yellow-400 text-black rounded-full p-1">
-                    <Star className="w-3 h-3" />
-                  </button>
-                  <button type="button" onClick={() => removeExisting(i)}
-                    className="bg-red-600 text-white rounded-full p-1">
-                    <X className="w-3 h-3" />
-                  </button>
+            {/* Existing (already uploaded) */}
+            {existingImages.map((url, i) => {
+              const isThumb = thumbnailIndex === i
+              return (
+                <div key={url} className={`relative group rounded-lg overflow-hidden border-2 ${isThumb ? 'border-yellow-400' : 'border-transparent'}`}>
+                  <img src={url} className="w-full aspect-square object-cover" alt="" />
+                  {isThumb && (
+                    <div className="absolute top-1 left-1 bg-yellow-400 text-black text-xs font-bold px-1 rounded">THUMB</div>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                    <button type="button" onClick={() => setThumbnailIndex(i)} title="Set as thumbnail"
+                      className="bg-yellow-400 text-black rounded-full p-1.5">
+                      <Star className="w-3.5 h-3.5" />
+                    </button>
+                    <button type="button" onClick={() => removeExisting(i)}
+                      className="bg-red-600 text-white rounded-full p-1.5">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-            {newPreviews.map((src, i) => (
-              <div key={i} className="relative group rounded-lg overflow-hidden border-2 border-blue-300">
-                <img src={src} className="w-full aspect-square object-cover" alt="" />
-                <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs font-bold px-1 rounded">NEW</div>
-                <button type="button" onClick={() => removeNew(i)}
-                  className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
+              )
+            })}
+
+            {/* New (pending upload) */}
+            {newPreviews.map((src, i) => {
+              const globalIdx = existingImages.length + i
+              const isThumb = thumbnailIndex === globalIdx
+              return (
+                <div key={i} className={`relative group rounded-lg overflow-hidden border-2 ${isThumb ? 'border-yellow-400' : 'border-[#5BB8F5]/60'}`}>
+                  <img src={src} className="w-full aspect-square object-cover" alt="" />
+                  <div className={`absolute top-1 left-1 text-xs font-bold px-1 rounded ${isThumb ? 'bg-yellow-400 text-black' : 'bg-[#5BB8F5] text-white'}`}>
+                    {isThumb ? 'THUMB' : 'NEW'}
+                  </div>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                    <button type="button" onClick={() => setThumbnailIndex(globalIdx)} title="Set as thumbnail"
+                      className="bg-yellow-400 text-black rounded-full p-1.5">
+                      <Star className="w-3.5 h-3.5" />
+                    </button>
+                    <button type="button" onClick={() => removeNew(i)}
+                      className="bg-red-600 text-white rounded-full p-1.5">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
-        <p className="text-xs text-gray-400 mt-3">Click the star icon on any photo to set it as the thumbnail. New photos are shown in blue.</p>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
@@ -518,7 +570,7 @@ export default function VehicleForm({ vehicle }: Props) {
         )}
       </div>
 
-      {/* Photo organizer modal */}
+      {/* Photo organizer modal — shows ALL photos (existing + new) */}
       {showPhotoEditor && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
@@ -528,33 +580,80 @@ export default function VehicleForm({ vehicle }: Props) {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-sm text-gray-500 mb-4">Use arrows to reorder. Click the star to set as thumbnail.</p>
-            <div className="space-y-2 max-h-80 overflow-y-auto">
-              {existingImages.map((url, i) => (
-                <div key={url} className={`flex items-center gap-3 p-2 rounded-lg border ${i === thumbnailIndex ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200'}`}>
-                  <img src={url} className="w-14 h-14 object-cover rounded-lg shrink-0" alt="" />
-                  <div className="flex-1 text-sm text-gray-600">Photo {i + 1}{i === thumbnailIndex ? ' · Thumbnail' : ''}</div>
-                  <div className="flex items-center gap-1">
-                    <button type="button" onClick={() => setThumbnailIndex(i)} title="Set as thumbnail"
-                      className={`p-1.5 rounded-full ${i === thumbnailIndex ? 'bg-yellow-400 text-black' : 'bg-gray-100 text-gray-500 hover:bg-yellow-100'}`}>
-                      <Star className="w-3.5 h-3.5" />
-                    </button>
-                    <button type="button" onClick={() => moveExisting(i, -1)} disabled={i === 0}
-                      className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-30">
-                      <ChevronLeft className="w-3.5 h-3.5" />
-                    </button>
-                    <button type="button" onClick={() => moveExisting(i, 1)} disabled={i === existingImages.length - 1}
-                      className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-30">
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                    <button type="button" onClick={() => removeExisting(i)}
-                      className="p-1.5 rounded-full bg-red-50 text-red-500 hover:bg-red-100">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+            <p className="text-sm text-gray-500 mb-4">Reorder with arrows · Star sets thumbnail · X removes.</p>
+
+            <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+              {/* Existing images */}
+              {existingImages.map((url, i) => {
+                const isThumb = thumbnailIndex === i
+                return (
+                  <div key={url} className={`flex items-center gap-3 p-2 rounded-lg border ${isThumb ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200'}`}>
+                    <img src={url} className="w-14 h-14 object-cover rounded-lg shrink-0" alt="" />
+                    <div className="flex-1 text-sm text-gray-600 min-w-0">
+                      <span>Photo {i + 1}</span>
+                      {isThumb && <span className="ml-1 text-xs text-yellow-600 font-semibold">· Thumbnail</span>}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button type="button" onClick={() => setThumbnailIndex(i)}
+                        className={`p-1.5 rounded-full ${isThumb ? 'bg-yellow-400 text-black' : 'bg-gray-100 text-gray-500 hover:bg-yellow-100'}`}>
+                        <Star className="w-3.5 h-3.5" />
+                      </button>
+                      <button type="button" onClick={() => moveExisting(i, -1)} disabled={i === 0}
+                        className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-30">
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </button>
+                      <button type="button" onClick={() => moveExisting(i, 1)} disabled={i === existingImages.length - 1}
+                        className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-30">
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                      <button type="button" onClick={() => removeExisting(i)}
+                        className="p-1.5 rounded-full bg-red-50 text-red-500 hover:bg-red-100">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
+
+              {/* New (pending) images */}
+              {newPreviews.map((src, i) => {
+                const globalIdx = existingImages.length + i
+                const isThumb = thumbnailIndex === globalIdx
+                return (
+                  <div key={`new-${i}`} className={`flex items-center gap-3 p-2 rounded-lg border ${isThumb ? 'border-yellow-400 bg-yellow-50' : 'border-[#5BB8F5]/30 bg-sky-50/40'}`}>
+                    <img src={src} className="w-14 h-14 object-cover rounded-lg shrink-0" alt="" />
+                    <div className="flex-1 text-sm text-gray-600 min-w-0">
+                      <span>New photo {i + 1}</span>
+                      <span className="ml-1 text-xs text-[#5BB8F5] font-semibold">· Pending</span>
+                      {isThumb && <span className="ml-1 text-xs text-yellow-600 font-semibold">· Thumbnail</span>}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button type="button" onClick={() => setThumbnailIndex(globalIdx)}
+                        className={`p-1.5 rounded-full ${isThumb ? 'bg-yellow-400 text-black' : 'bg-gray-100 text-gray-500 hover:bg-yellow-100'}`}>
+                        <Star className="w-3.5 h-3.5" />
+                      </button>
+                      <button type="button" onClick={() => moveNew(i, -1)} disabled={i === 0}
+                        className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-30">
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </button>
+                      <button type="button" onClick={() => moveNew(i, 1)} disabled={i === newPreviews.length - 1}
+                        className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-30">
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                      <button type="button" onClick={() => removeNew(i)}
+                        className="p-1.5 rounded-full bg-red-50 text-red-500 hover:bg-red-100">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+
+              {existingImages.length === 0 && newPreviews.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-8">No photos added yet.</p>
+              )}
             </div>
+
             <button onClick={() => setShowPhotoEditor(false)}
               className="mt-4 w-full bg-black text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-800"
             >
