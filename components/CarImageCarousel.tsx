@@ -41,7 +41,7 @@ export default function CarImageCarousel({
       <img
         src={ordered[current]}
         alt={`${alt} - photo ${current + 1}`}
-        className="w-full h-full object-cover transition-opacity duration-200"
+        className="w-full h-full object-cover object-bottom transition-opacity duration-200"
       />
 
       {ordered.length > 1 && (

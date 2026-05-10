@@ -24,7 +24,7 @@ export default function VehicleGallery({ images, thumbnailIndex, alt }: Props) {
     <div className="space-y-3">
       <div className="relative aspect-[4/3] bg-zinc-100 rounded-2xl overflow-hidden group cursor-zoom-in"
         onClick={() => setLightbox(true)}>
-        <img src={ordered[current]} alt={`${alt} photo ${current + 1}`} className="w-full h-full object-cover" />
+        <img src={ordered[current]} alt={`${alt} photo ${current + 1}`} className="w-full h-full object-cover object-bottom" />
 
         <button onClick={e => { e.stopPropagation(); setLightbox(true) }}
           className="absolute top-3 right-3 bg-black/40 hover:bg-black/60 text-white rounded-lg p-2 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
@@ -53,9 +53,9 @@ export default function VehicleGallery({ images, thumbnailIndex, alt }: Props) {
           {ordered.slice(0, 5).map((img, i) => (
             <button key={i} onClick={() => setCurrent(i)}
               className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
-                i === current ? 'border-rose-500 opacity-100' : 'border-transparent opacity-60 hover:opacity-90'
+                i === current ? 'border-[#5BB8F5] opacity-100' : 'border-transparent opacity-60 hover:opacity-90'
               }`}>
-              <img src={img} alt="" className="w-full h-full object-cover" />
+              <img src={img} alt="" className="w-full h-full object-cover object-bottom" />
             </button>
           ))}
         </div>
