@@ -28,7 +28,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-3">
           <a href="/" className="flex items-center gap-3 shrink-0">
-            <img src="/logo-white.svg" alt="ATL Auto Group" className="h-12 sm:h-14 w-auto" />
+            <img src="/logo-white.png" alt="ATL Auto Group" className="h-12 sm:h-14 w-auto" />
           </a>
 
           <nav className="hidden md:flex items-center gap-5 text-sm font-medium">

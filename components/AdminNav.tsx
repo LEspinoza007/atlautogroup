@@ -32,7 +32,7 @@ export default function AdminNav({ userEmail }: { userEmail: string }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <div className="flex items-center gap-5">
           <div className="flex items-center gap-2.5">
-            <img src="/logo-white.svg" alt="ATL Auto Group" className="h-7 w-auto" />
+            <img src="/logo-white.png" alt="ATL Auto Group" className="h-7 w-auto" />
           </div>
           <nav className="flex items-center gap-1 overflow-x-auto">
             {navLink('/dashboard', 'Overview', LayoutDashboard)}

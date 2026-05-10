@@ -27,7 +27,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 sm:grid-cols-3 gap-8">
         <div>
           <div className="flex items-center gap-3 mb-3">
-            <img src="/logo-white.svg" alt="ATL Auto Group" className="h-10 w-auto" />
+            <img src="/logo-white.png" alt="ATL Auto Group" className="h-10 w-auto" />
           </div>
           <p className="text-sm text-zinc-500 mb-4">Quality pre-owned vehicles in San Antonio. ATL Logistics LLC.</p>
           <div className="flex items-center gap-3">
