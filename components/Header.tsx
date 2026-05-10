@@ -1,7 +1,6 @@
 'use client'
 
 import { Phone } from 'lucide-react'
-import Image from 'next/image'
 
 const FINANCING_URL = 'https://www.startyourcreditapproval.com/credit-application/DC5W7?utm_medium=qr_code&utm_source=dealer&utm_campaign=credit_app'
 const FACEBOOK_URL = 'https://www.facebook.com/profile.php?id=61574727189453'
@@ -29,14 +28,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-3">
           <a href="/" className="flex items-center gap-3 shrink-0">
-            <Image
-              src="/logo.png"
-              alt="ATL Auto Group"
-              width={88}
-              height={88}
-              className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl"
-              priority
-            />
+            <img src="/logo-white.svg" alt="ATL Auto Group" className="h-12 sm:h-14 w-auto" />
           </a>
 
           <nav className="hidden md:flex items-center gap-5 text-sm font-medium">

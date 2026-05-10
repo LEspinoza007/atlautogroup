@@ -1,5 +1,4 @@
 import { MapPin, Phone } from 'lucide-react'
-import Image from 'next/image'
 
 const FINANCING_URL = 'https://www.startyourcreditapproval.com/credit-application/DC5W7?utm_medium=qr_code&utm_source=dealer&utm_campaign=credit_app'
 const FACEBOOK_URL = 'https://www.facebook.com/profile.php?id=61574727189453'
@@ -28,8 +27,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 sm:grid-cols-3 gap-8">
         <div>
           <div className="flex items-center gap-3 mb-3">
-            <Image src="/logo.png" alt="ATL Auto Group" width={44} height={44} className="h-11 w-11 rounded-xl" />
-            <h3 className="text-white font-bold">ATL Auto Group</h3>
+            <img src="/logo-white.svg" alt="ATL Auto Group" className="h-10 w-auto" />
           </div>
           <p className="text-sm text-zinc-500 mb-4">Quality pre-owned vehicles in San Antonio. ATL Logistics LLC.</p>
           <div className="flex items-center gap-3">

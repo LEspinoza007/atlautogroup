@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Calendar, Phone, Mail, ExternalLink } from 'lucide-react'
+import AppointmentActions from '@/components/AppointmentActions'
 
 const STATUS_STYLES: Record<string, string> = {
   pending: 'bg-amber-50 text-amber-700',
@@ -54,7 +55,7 @@ export default async function AppointmentsPage() {
           <table className="w-full text-sm">
             <thead className="bg-zinc-50 border-b border-zinc-100">
               <tr>
-                {['Date & Time', 'Client', 'Contact', 'Vehicle', 'DNC', 'Status', ''].map(h => (
+                {['Date & Time', 'Client', 'Contact', 'Vehicle', 'DNC', 'Status', 'Actions'].map(h => (
                   <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wide">{h}</th>
                 ))}
               </tr>
@@ -109,11 +110,8 @@ export default async function AppointmentsPage() {
                         {apt.status}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-right">
-                      <Link href={`/dashboard/appointments/${apt.id}`}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                        Manage
-                      </Link>
+                    <td className="px-5 py-4">
+                      <AppointmentActions aptId={apt.id} />
                     </td>
                   </tr>
                 )
