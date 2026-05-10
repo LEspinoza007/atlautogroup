@@ -1,11 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { LayoutDashboard, PlusCircle, LogOut } from 'lucide-react'
 
 export default function AdminNav({ userEmail }: { userEmail: string }) {
   const router = useRouter()
+  const pathname = usePathname()
   const supabase = createClient()
 
   async function handleSignOut() {
@@ -13,25 +15,46 @@ export default function AdminNav({ userEmail }: { userEmail: string }) {
     router.push('/login')
   }
 
+  const navLink = (href: string, label: string, Icon: React.ElementType) => (
+    <Link
+      href={href}
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+        pathname === href
+          ? 'bg-white/10 text-white'
+          : 'text-gray-300 hover:text-white hover:bg-white/5'
+      }`}
+    >
+      <Icon className="w-4 h-4" />
+      {label}
+    </Link>
+  )
+
   return (
-    <header className="bg-black text-white shadow">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold">ATL Auto Group</h1>
-          <p className="text-xs text-gray-400">Admin Dashboard</p>
-        </div>
-        <nav className="flex items-center gap-6 text-sm">
-          <Link href="/dashboard" className="text-gray-300 hover:text-white transition-colors">Overview</Link>
-          <Link href="/dashboard/vehicles/new" className="bg-white text-black px-3 py-1.5 rounded-lg font-medium hover:bg-gray-200 transition-colors">
-            + Add Vehicle
-          </Link>
-          <div className="text-right">
-            <p className="text-xs text-gray-400">{userEmail}</p>
-            <button onClick={handleSignOut} className="text-xs text-red-400 hover:text-red-300 transition-colors">
-              Sign Out
-            </button>
+    <header className="bg-gray-950 text-white border-b border-white/10 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 bg-red-600 rounded-md flex items-center justify-center font-black text-white text-xs">
+              ATL
+            </div>
+            <span className="font-semibold text-white text-sm">Admin Dashboard</span>
           </div>
-        </nav>
+          <nav className="flex items-center gap-1">
+            {navLink('/dashboard', 'Overview', LayoutDashboard)}
+            {navLink('/dashboard/vehicles/new', 'Add Vehicle', PlusCircle)}
+          </nav>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-400 hidden sm:block">{userEmail}</span>
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-400 transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            Sign Out
+          </button>
+        </div>
       </div>
     </header>
   )
