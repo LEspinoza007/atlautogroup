@@ -38,6 +38,7 @@ export default function VehicleForm({ vehicle }: Props) {
     engine: vehicle?.engine ?? '',
     features: vehicle?.features ?? '',
     title_status: vehicle?.title_status ?? 'Clean',
+    sale_price: vehicle?.sale_price?.toString() ?? '',
     description: vehicle?.description ?? '',
   })
 
@@ -139,6 +140,8 @@ export default function VehicleForm({ vehicle }: Props) {
       engine: form.engine,
       features: form.features,
       title_status: form.title_status,
+      sale_price: (form.status === 'sale' || form.status === 'clearance') && form.sale_price ? parseFloat(form.sale_price) : null,
+      is_sale: form.status === 'sale' || form.status === 'clearance',
       description: form.description,
       thumbnail_index: thumbnailIndex,
     }
@@ -258,8 +261,20 @@ export default function VehicleForm({ vehicle }: Props) {
             <select name="status" value={form.status} onChange={handleChange} className={inputClass}>
               <option value="available">Available</option>
               <option value="sold">Sold</option>
+              <option value="sale">Sale / Discounted</option>
+              <option value="clearance">Clearance</option>
             </select>
           </div>
+          {(form.status === 'sale' || form.status === 'clearance') && (
+            <div className="col-span-2">
+              <label className={labelClass}>Sale Price ($) <span className="text-rose-500">*</span></label>
+              <input name="sale_price" type="number" value={form.sale_price}
+                onChange={handleChange} placeholder={form.price || 'Enter discounted price'}
+                className={`${inputClass} border-rose-300 focus:ring-rose-500`}
+              />
+              <p className="text-xs text-zinc-400 mt-1">Original price will show crossed out. Sale price shown in green.</p>
+            </div>
+          )}
           <div>
             <label className={labelClass}>Title Status</label>
             <select name="title_status" value={form.title_status} onChange={handleChange} className={inputClass}>

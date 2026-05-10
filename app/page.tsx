@@ -3,6 +3,7 @@ import Header from '@/components/Header'
 import FinancingBanner from '@/components/FinancingBanner'
 import InventoryClient from '@/components/InventoryClient'
 import Footer from '@/components/Footer'
+import ProcurementForm from '@/components/ProcurementForm'
 import { MapPin, Phone, Shield, Clock } from 'lucide-react'
 
 export default async function HomePage() {
@@ -46,6 +47,7 @@ export default async function HomePage() {
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
         <InventoryClient vehicles={vehicles ?? []} />
+        <ProcurementForm />
       </main>
 
       <Footer />
