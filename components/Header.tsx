@@ -1,6 +1,7 @@
 'use client'
 
 import { Phone } from 'lucide-react'
+import Image from 'next/image'
 
 const FINANCING_URL = 'https://www.startyourcreditapproval.com/credit-application/DC5W7?utm_medium=qr_code&utm_source=dealer&utm_campaign=credit_app'
 const FACEBOOK_URL = 'https://www.facebook.com/profile.php?id=61574727189453'
@@ -26,15 +27,16 @@ export default function Header() {
   return (
     <header className="bg-zinc-950 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <a href="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-rose-600 rounded-lg flex items-center justify-center font-black text-white text-sm tracking-tight">
-              ATL
-            </div>
-            <div>
-              <div className="font-bold text-white text-lg leading-tight tracking-tight">ATL Auto Group</div>
-              <div className="text-zinc-400 text-xs leading-none">San Antonio, TX</div>
-            </div>
+        <div className="flex items-center justify-between py-3">
+          <a href="/" className="flex items-center gap-3 shrink-0">
+            <Image
+              src="/logo.png"
+              alt="ATL Auto Group"
+              width={88}
+              height={88}
+              className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl"
+              priority
+            />
           </a>
 
           <nav className="hidden md:flex items-center gap-5 text-sm font-medium">
@@ -48,16 +50,16 @@ export default function Header() {
               (956) 694-7000
             </a>
             <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer"
-              className="text-zinc-300 hover:text-blue-400 transition-colors">
+              className="text-zinc-300 hover:text-[#5BB8F5] transition-colors">
               <FacebookIcon />
             </a>
             <a href="/login"
-              className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors">
+              className="bg-[#5BB8F5] hover:bg-[#3A9FE0] text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors">
               Employee Login
             </a>
           </nav>
 
-          <a href="/login" className="md:hidden bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+          <a href="/login" className="md:hidden bg-[#5BB8F5] hover:bg-[#3A9FE0] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
             Login
           </a>
         </div>

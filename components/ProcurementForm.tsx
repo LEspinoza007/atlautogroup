@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Search, CheckCircle, ChevronDown } from 'lucide-react'
 
-const inputClass = "w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500 placeholder-zinc-400"
+const inputClass = "w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#5BB8F5] placeholder-zinc-400"
 const labelClass = "block text-xs font-semibold text-zinc-500 mb-1.5 uppercase tracking-wide"
 
 export default function ProcurementForm() {
@@ -96,7 +96,7 @@ export default function ProcurementForm() {
               </div>
 
               <button type="submit" disabled={submitting}
-                className="w-full bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-semibold py-3 rounded-xl text-sm transition-colors">
+                className="w-full bg-[#5BB8F5] hover:bg-[#3A9FE0] disabled:opacity-50 text-white font-semibold py-3 rounded-xl text-sm transition-colors">
                 {submitting ? 'Submitting…' : 'Submit Request'}
               </button>
             </form>

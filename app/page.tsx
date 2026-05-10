@@ -28,17 +28,17 @@ export default async function HomePage() {
               to get you behind the wheel of the right car.
             </p>
             <div className="flex flex-wrap gap-4 text-sm text-gray-300">
-              <span className="flex items-center gap-2"><Shield className="w-4 h-4 text-red-400" /> Vehicle History Checked</span>
-              <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-red-400" /> Quick Approval Process</span>
+              <span className="flex items-center gap-2"><Shield className="w-4 h-4 text-[#5BB8F5]" /> Vehicle History Checked</span>
+              <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-[#5BB8F5]" /> Quick Approval Process</span>
             </div>
           </div>
           <div className="space-y-3 text-sm">
             <a href="tel:+19566947000" className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors">
-              <Phone className="w-5 h-5 text-red-400" />
+              <Phone className="w-5 h-5 text-[#5BB8F5]" />
               <span>(956) 694-7000</span>
             </a>
             <div className="flex items-start gap-3 text-gray-300">
-              <MapPin className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+              <MapPin className="w-5 h-5 text-[#5BB8F5] shrink-0 mt-0.5" />
               <span>2379 Northeast Interstate 410 Loop<br />San Antonio, TX 78217</span>
             </div>
           </div>

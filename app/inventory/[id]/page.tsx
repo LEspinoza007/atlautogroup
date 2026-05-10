@@ -51,7 +51,7 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
                 <h1 className="text-2xl font-bold text-zinc-900 leading-tight">{vehicleName}</h1>
                 <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${
                   vehicle.status === 'sold' ? 'bg-red-50 text-red-600'
-                  : onSale ? 'bg-rose-50 text-rose-600'
+                  : onSale ? 'bg-sky-50 text-sky-700'
                   : 'bg-emerald-50 text-emerald-700'
                 }`}>
                   {vehicle.status === 'sold' ? 'Sold' : onSale ? vehicle.status === 'clearance' ? 'Clearance' : 'On Sale' : 'Available'}
@@ -63,9 +63,9 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
             <div>
               {onSale && (
                 <div className="flex items-center gap-2 mb-1">
-                  <Tag className="w-4 h-4 text-rose-600" />
+                  <Tag className="w-4 h-4 text-[#5BB8F5]" />
                   <p className="text-zinc-400 line-through text-lg">${vehicle.price?.toLocaleString()}</p>
-                  <span className="text-xs text-rose-600 font-semibold bg-rose-50 px-2 py-0.5 rounded-full">
+                  <span className="text-xs text-[#1A7FC4] font-semibold bg-sky-50 px-2 py-0.5 rounded-full">
                     Save ${(vehicle.price - vehicle.sale_price!).toLocaleString()}
                   </span>
                 </div>

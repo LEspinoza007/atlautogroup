@@ -1,4 +1,5 @@
 import { MapPin, Phone } from 'lucide-react'
+import Image from 'next/image'
 
 const FINANCING_URL = 'https://www.startyourcreditapproval.com/credit-application/DC5W7?utm_medium=qr_code&utm_source=dealer&utm_campaign=credit_app'
 const FACEBOOK_URL = 'https://www.facebook.com/profile.php?id=61574727189453'
@@ -26,8 +27,8 @@ export default function Footer() {
     <footer className="bg-zinc-950 text-zinc-300 mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 sm:grid-cols-3 gap-8">
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-7 h-7 bg-rose-600 rounded-md flex items-center justify-center font-black text-white text-xs">ATL</div>
+          <div className="flex items-center gap-3 mb-3">
+            <Image src="/logo.png" alt="ATL Auto Group" width={44} height={44} className="h-11 w-11 rounded-xl" />
             <h3 className="text-white font-bold">ATL Auto Group</h3>
           </div>
           <p className="text-sm text-zinc-500 mb-4">Quality pre-owned vehicles in San Antonio. ATL Logistics LLC.</p>
@@ -48,13 +49,13 @@ export default function Footer() {
           <div className="space-y-3 text-sm">
             <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-2 hover:text-white transition-colors">
-              <Phone className="w-4 h-4 text-rose-400" />
+              <Phone className="w-4 h-4 text-[#5BB8F5]" />
               (956) 694-7000
               <span className="text-xs text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">WhatsApp</span>
             </a>
             <a href={MAPS_URL} target="_blank" rel="noopener noreferrer"
               className="flex items-start gap-2 hover:text-white transition-colors">
-              <MapPin className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
+              <MapPin className="w-4 h-4 text-[#5BB8F5] mt-0.5 shrink-0" />
               <span>2379 Northeast Interstate 410 Loop<br />San Antonio, TX 78217</span>
             </a>
           </div>
@@ -64,7 +65,7 @@ export default function Footer() {
           <h4 className="text-white font-semibold mb-3">Financing</h4>
           <p className="text-sm text-zinc-500 mb-3">We work with all credit types — get pre-approved quickly.</p>
           <a href={FINANCING_URL} target="_blank" rel="noopener noreferrer"
-            className="inline-block bg-rose-600 hover:bg-rose-700 text-white text-sm px-4 py-2 rounded-xl transition-colors font-semibold">
+            className="inline-block bg-[#5BB8F5] hover:bg-[#3A9FE0] text-white text-sm px-4 py-2 rounded-xl transition-colors font-semibold">
             Apply Now
           </a>
         </div>

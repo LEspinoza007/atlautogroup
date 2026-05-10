@@ -267,10 +267,10 @@ export default function VehicleForm({ vehicle }: Props) {
           </div>
           {(form.status === 'sale' || form.status === 'clearance') && (
             <div className="col-span-2">
-              <label className={labelClass}>Sale Price ($) <span className="text-rose-500">*</span></label>
+              <label className={labelClass}>Sale Price ($) <span className="text-[#5BB8F5]">*</span></label>
               <input name="sale_price" type="number" value={form.sale_price}
                 onChange={handleChange} placeholder={form.price || 'Enter discounted price'}
-                className={`${inputClass} border-rose-300 focus:ring-rose-500`}
+                className={`${inputClass} border-[#5BB8F5] focus:ring-[#5BB8F5]`}
               />
               <p className="text-xs text-zinc-400 mt-1">Original price will show crossed out. Sale price shown in green.</p>
             </div>

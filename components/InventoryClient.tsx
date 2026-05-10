@@ -5,7 +5,7 @@ import { Vehicle } from '@/types'
 import CarCard from './CarCard'
 import { Search, SlidersHorizontal } from 'lucide-react'
 
-const inputClass = "border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
+const inputClass = "border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#5BB8F5]"
 
 export default function InventoryClient({ vehicles }: { vehicles: Vehicle[] }) {
   const [search, setSearch] = useState('')
@@ -118,7 +118,7 @@ export default function InventoryClient({ vehicles }: { vehicles: Vehicle[] }) {
         {(search || filterMake || filterStatus !== 'available' || maxPrice) && (
           <button
             onClick={() => { setSearch(''); setFilterMake(''); setFilterStatus('available'); setMaxPrice('') }}
-            className="text-xs text-red-600 hover:text-red-800 font-medium self-end pb-2"
+            className="text-xs text-[#1A7FC4] hover:text-[#0F5FA0] font-medium self-end pb-2"
           >
             Clear filters
           </button>

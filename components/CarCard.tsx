@@ -28,7 +28,7 @@ export default function CarCard({ vehicle }: { vehicle: Vehicle }) {
 
         {/* Sale badge */}
         {onSale && (
-          <div className="absolute top-3 left-3 z-10 bg-rose-600 text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow flex items-center gap-1">
+          <div className="absolute top-3 left-3 z-10 bg-[#5BB8F5] text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow flex items-center gap-1">
             <Tag className="w-3 h-3" />
             {vehicle.status === 'clearance' ? 'CLEARANCE' : 'SALE'}
           </div>
@@ -52,7 +52,7 @@ export default function CarCard({ vehicle }: { vehicle: Vehicle }) {
               vehicle.status === 'sold'
                 ? 'bg-red-50 text-red-600'
                 : onSale
-                ? 'bg-rose-50 text-rose-600'
+                ? 'bg-sky-50 text-sky-700'
                 : 'bg-emerald-50 text-emerald-700'
             }`}>
               {vehicle.status === 'sold' ? 'Sold' : onSale ? vehicle.status === 'clearance' ? 'Clearance' : 'Sale' : 'Available'}

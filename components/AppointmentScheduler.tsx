@@ -99,7 +99,7 @@ export default function AppointmentScheduler({ vehicleId, vehicleName, businessH
   return (
     <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6">
       <div className="flex items-center gap-2 mb-5">
-        <Calendar className="w-5 h-5 text-rose-600" />
+        <Calendar className="w-5 h-5 text-[#5BB8F5]" />
         <h3 className="font-bold text-zinc-900 text-lg">Want to take a look in person?</h3>
       </div>
       <p className="text-zinc-500 text-sm mb-6">Schedule a time to see the {vehicleName} — no commitment needed.</p>
@@ -110,7 +110,7 @@ export default function AppointmentScheduler({ vehicleId, vehicleName, businessH
             <label className="block text-xs font-semibold text-zinc-500 mb-1.5 uppercase tracking-wide">Date</label>
             <input type="date" min={today} value={date}
               onChange={e => { setDate(e.target.value); setTime('') }}
-              className="w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500"
+              className="w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#5BB8F5]"
             />
           </div>
           <div>
@@ -119,7 +119,7 @@ export default function AppointmentScheduler({ vehicleId, vehicleName, businessH
             </label>
             {slots.length > 0 ? (
               <select value={time} onChange={e => setTime(e.target.value)}
-                className="w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
+                className="w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#5BB8F5]">
                 <option value="">Pick a time</option>
                 {slots.map(s => <option key={s} value={s}>{formatTime(s)}</option>)}
               </select>
@@ -140,7 +140,7 @@ export default function AppointmentScheduler({ vehicleId, vehicleName, businessH
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
               <input type="text" required placeholder="John" value={form.first_name}
                 onChange={e => setForm(p => ({...p, first_name: e.target.value}))}
-                className="w-full border border-zinc-300 rounded-xl pl-8 pr-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full border border-zinc-300 rounded-xl pl-8 pr-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#5BB8F5]"
               />
             </div>
           </div>
@@ -148,7 +148,7 @@ export default function AppointmentScheduler({ vehicleId, vehicleName, businessH
             <label className="block text-xs font-semibold text-zinc-500 mb-1.5 uppercase tracking-wide">Last Name</label>
             <input type="text" required placeholder="Doe" value={form.last_name}
               onChange={e => setForm(p => ({...p, last_name: e.target.value}))}
-              className="w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500"
+              className="w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#5BB8F5]"
             />
           </div>
         </div>
@@ -160,7 +160,7 @@ export default function AppointmentScheduler({ vehicleId, vehicleName, businessH
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
               <input type="tel" required placeholder="(956) 000-0000" value={form.phone}
                 onChange={e => setForm(p => ({...p, phone: e.target.value}))}
-                className="w-full border border-zinc-300 rounded-xl pl-8 pr-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full border border-zinc-300 rounded-xl pl-8 pr-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#5BB8F5]"
               />
             </div>
           </div>
@@ -170,7 +170,7 @@ export default function AppointmentScheduler({ vehicleId, vehicleName, businessH
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
               <input type="email" placeholder="john@email.com" value={form.email}
                 onChange={e => setForm(p => ({...p, email: e.target.value}))}
-                className="w-full border border-zinc-300 rounded-xl pl-8 pr-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full border border-zinc-300 rounded-xl pl-8 pr-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#5BB8F5]"
               />
             </div>
           </div>
@@ -179,7 +179,7 @@ export default function AppointmentScheduler({ vehicleId, vehicleName, businessH
         <div className="bg-white border border-zinc-200 rounded-xl p-4">
           <label className="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)}
-              className="mt-0.5 w-4 h-4 accent-rose-600 shrink-0"
+              className="mt-0.5 w-4 h-4 accent-[#5BB8F5] shrink-0"
             />
             <span className="text-xs text-zinc-500 leading-relaxed">
               I understand and consent to receive promotional communications (SMS, email, calls) from ATL Auto Group regarding vehicles, offers, and services. You may opt out at any time by replying STOP or contacting us directly. Consent is not required to schedule a visit.
@@ -195,7 +195,7 @@ export default function AppointmentScheduler({ vehicleId, vehicleName, businessH
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button type="submit" disabled={submitting || !date || !time}
-          className="w-full bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-semibold py-3 rounded-xl text-sm transition-colors">
+          className="w-full bg-[#5BB8F5] hover:bg-[#3A9FE0] disabled:opacity-50 text-white font-semibold py-3 rounded-xl text-sm transition-colors">
           {submitting ? 'Scheduling…' : 'Schedule Visit'}
         </button>
       </form>

@@ -32,7 +32,7 @@ export default function AdminNav({ userEmail }: { userEmail: string }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <div className="flex items-center gap-5">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-rose-600 rounded-md flex items-center justify-center font-black text-white text-xs">ATL</div>
+            <div className="w-7 h-7 bg-[#5BB8F5] rounded-md flex items-center justify-center font-black text-white text-xs">ATL</div>
             <span className="font-semibold text-white text-sm hidden sm:block">Admin</span>
           </div>
           <nav className="flex items-center gap-1 overflow-x-auto">
