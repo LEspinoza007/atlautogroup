@@ -22,10 +22,10 @@ export default async function HomePage() {
       <Header />
 
       <div
-        className="text-white py-12 px-4 lg:py-14 lg:px-6"
+        className="text-white py-8 px-4 lg:py-8 lg:px-6"
         style={{ background: 'radial-gradient(ellipse at 75% 40%, rgba(91,184,245,0.11) 0%, transparent 55%), radial-gradient(ellipse at 15% 80%, rgba(91,184,245,0.05) 0%, transparent 45%), #27272a' }}
       >
-        <div className="max-w-7xl mx-auto lg:backdrop-blur-xl lg:bg-white/5 lg:border lg:border-white/10 lg:rounded-[20px] lg:p-10 lg:grid lg:grid-cols-[3fr_1fr] lg:gap-10 lg:items-center">
+        <div className="max-w-7xl mx-auto lg:backdrop-blur-xl lg:bg-white/5 lg:border lg:border-white/10 lg:rounded-[20px] lg:pt-6 lg:pb-4 lg:px-8 lg:grid lg:grid-cols-[3fr_1fr] lg:gap-10 lg:items-start">
           <div>
             <p className="hidden lg:block text-[#5BB8F5] text-[11px] font-bold tracking-[3px] uppercase mb-3">San Antonio, TX</p>
             <h2 className="text-3xl lg:text-5xl font-bold mb-3 leading-tight">San Antonio&apos;s Trusted Pre-Owned Dealer</h2>
@@ -41,7 +41,7 @@ export default async function HomePage() {
           </div>
 
           {heroFeatured && (
-            <div className="hidden lg:flex flex-col items-center gap-3 -translate-y-7">
+            <div className="hidden lg:flex flex-col items-center gap-2 -translate-y-6">
               <div style={{ borderRadius: '14px', overflow: 'hidden', boxShadow: '0 28px 56px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08), 0 -4px 20px rgba(91,184,245,0.10)' }}>
                 <div style={{ height: '3px', background: 'linear-gradient(90deg, #5BB8F5, #3A9FE0)' }} />
                 <CarCard vehicle={heroFeatured} />
