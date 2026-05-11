@@ -22,15 +22,15 @@ export default async function HomePage() {
       <Header />
 
       <div className="bg-zinc-800 text-white py-12 px-4">
-        <div className="max-w-7xl mx-auto lg:grid lg:grid-cols-2 lg:gap-10 lg:items-center">
+        <div className="max-w-7xl mx-auto lg:grid lg:grid-cols-[3fr_1fr] lg:gap-10 lg:items-center">
           <div>
-            <h2 className="text-3xl font-bold mb-3">San Antonio&apos;s Trusted Pre-Owned Dealer</h2>
-            <p className="text-gray-300 leading-relaxed mb-6 max-w-2xl">
+            <h2 className="text-3xl lg:text-5xl font-bold mb-3">San Antonio&apos;s Trusted Pre-Owned Dealer</h2>
+            <p className="text-gray-300 leading-relaxed mb-6 lg:text-lg max-w-2xl">
               ATL Auto Group is your go-to dealership for quality pre-owned vehicles in San Antonio, TX.
               We offer a hand-selected inventory, transparent pricing, and flexible financing options
               to get you behind the wheel of the right car.
             </p>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-300">
+            <div className="flex flex-wrap gap-4 text-sm lg:text-base text-gray-300">
               <span className="flex items-center gap-2"><Shield className="w-4 h-4 text-[#5BB8F5]" /> Vehicle History Checked</span>
               <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-[#5BB8F5]" /> Quick Approval Process</span>
             </div>
