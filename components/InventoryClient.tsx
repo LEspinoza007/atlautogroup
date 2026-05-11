@@ -22,7 +22,8 @@ export default function InventoryClient({ vehicles }: { vehicles: Vehicle[] }) {
   const filtered = useMemo(() => {
     let result = [...vehicles]
 
-    if (filterStatus !== 'all') result = result.filter(v => v.status === filterStatus)
+    if (filterStatus === 'available') result = result.filter(v => v.status !== 'sold')
+    else if (filterStatus !== 'all') result = result.filter(v => v.status === filterStatus)
     if (filterMake) result = result.filter(v => v.make === filterMake)
     if (maxPrice) result = result.filter(v => v.price <= parseFloat(maxPrice))
     if (search) {
@@ -44,7 +45,7 @@ export default function InventoryClient({ vehicles }: { vehicles: Vehicle[] }) {
     return result
   }, [vehicles, filterStatus, filterMake, maxPrice, search, sortBy])
 
-  const available = vehicles.filter(v => v.status === 'available').length
+  const available = vehicles.filter(v => v.status !== 'sold').length
   const sold = vehicles.filter(v => v.status === 'sold').length
 
   return (
