@@ -17,6 +17,7 @@ export default function ImageLightbox({ images, startIndex, onClose, alt }: Prop
   const [dragging, setDragging] = useState(false)
   const dragRef = useRef({ sx: 0, sy: 0, px: 0, py: 0 })
   const pinchRef = useRef(0)
+  const swipeStartX = useRef<number | null>(null)
 
   useEffect(() => { setScale(1); setPos({ x: 0, y: 0 }) }, [current])
 
@@ -52,6 +53,9 @@ export default function ImageLightbox({ images, startIndex, onClose, alt }: Prop
       const dx = e.touches[0].clientX - e.touches[1].clientX
       const dy = e.touches[0].clientY - e.touches[1].clientY
       pinchRef.current = Math.sqrt(dx * dx + dy * dy)
+      swipeStartX.current = null
+    } else if (e.touches.length === 1) {
+      swipeStartX.current = e.touches[0].clientX
     }
   }
 
@@ -63,6 +67,16 @@ export default function ImageLightbox({ images, startIndex, onClose, alt }: Prop
       setScale(s => Math.min(Math.max(s * (dist / pinchRef.current), 1), 5))
       pinchRef.current = dist
     }
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (scale === 1 && swipeStartX.current !== null && e.changedTouches.length === 1) {
+      const delta = e.changedTouches[0].clientX - swipeStartX.current
+      if (Math.abs(delta) >= 40) {
+        setCurrent(c => delta < 0 ? (c + 1) % images.length : (c - 1 + images.length) % images.length)
+      }
+    }
+    swipeStartX.current = null
   }
 
   return (
@@ -90,7 +104,7 @@ export default function ImageLightbox({ images, startIndex, onClose, alt }: Prop
       {/* Image area */}
       <div
         className="w-full h-full flex items-center justify-center overflow-hidden pt-14 pb-20"
-        style={{ cursor: scale > 1 ? (dragging ? 'grabbing' : 'grab') : 'zoom-in' }}
+        style={{ cursor: scale > 1 ? (dragging ? 'grabbing' : 'grab') : 'zoom-in', touchAction: scale > 1 ? 'none' : 'pan-y' }}
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -98,6 +112,7 @@ export default function ImageLightbox({ images, startIndex, onClose, alt }: Prop
         onMouseLeave={() => setDragging(false)}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onClick={e => { if (e.target === e.currentTarget && scale === 1) onClose() }}
       >
         <img
