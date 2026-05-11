@@ -41,7 +41,7 @@ export default async function HomePage() {
           </div>
 
           {heroFeatured && (
-            <div className="hidden lg:flex flex-col items-center gap-2 -translate-y-6">
+            <div className="hidden lg:flex flex-col items-center gap-2">
               <div style={{ borderRadius: '14px', overflow: 'hidden', boxShadow: '0 28px 56px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08), 0 -4px 20px rgba(91,184,245,0.10)' }}>
                 <div style={{ height: '3px', background: 'linear-gradient(90deg, #5BB8F5, #3A9FE0)' }} />
                 <CarCard vehicle={heroFeatured} />
