@@ -2,7 +2,7 @@ import { Vehicle } from '@/types'
 import Link from 'next/link'
 import CarImageCarousel from './CarImageCarousel'
 import { Card, CardContent } from '@/components/ui/card'
-import { Gauge, GitFork, Fuel, Tag } from 'lucide-react'
+import { Gauge, GitFork, Settings2, Tag } from 'lucide-react'
 
 function TransmissionBadge({ transmission }: { transmission: string }) {
   const isManual = (transmission || '').toLowerCase().includes('manual')
@@ -10,7 +10,7 @@ function TransmissionBadge({ transmission }: { transmission: string }) {
     <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
       isManual ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'
     }`}>
-      {isManual ? <GitFork className="w-3 h-3" /> : <Gauge className="w-3 h-3" />}
+      {isManual ? <GitFork className="w-3 h-3" /> : <Settings2 className="w-3 h-3" />}
       {isManual ? 'Manual' : transmission || 'Auto'}
     </span>
   )
@@ -61,7 +61,7 @@ export default function CarCard({ vehicle }: { vehicle: Vehicle }) {
 
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span className="inline-flex items-center gap-1 text-xs text-zinc-500">
-              <Fuel className="w-3 h-3 text-zinc-400" />
+              <Gauge className="w-3 h-3 text-zinc-400" />
               {vehicle.mileage?.toLocaleString()} mi
             </span>
             {vehicle.transmission && <TransmissionBadge transmission={vehicle.transmission} />}

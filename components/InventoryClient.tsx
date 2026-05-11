@@ -58,67 +58,71 @@ export default function InventoryClient({ vehicles }: { vehicles: Vehicle[] }) {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-4 mb-8 flex flex-wrap gap-3 items-end">
-        <SlidersHorizontal className="w-4 h-4 text-gray-400 self-center mt-4" />
+      <div className="bg-white border border-gray-200 rounded-xl p-4 mb-8">
+        <div className="flex items-center gap-2 mb-3">
+          <SlidersHorizontal className="w-4 h-4 text-gray-400" />
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Filter & Sort</span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="col-span-2 sm:col-span-3 lg:col-span-2 flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-500">Search</label>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Year, make, model…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className={`${inputClass} pl-8 w-full`}
+              />
+            </div>
+          </div>
 
-        <div className="flex flex-col gap-1 flex-1 min-w-[160px]">
-          <label className="text-xs font-medium text-gray-500">Search</label>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-500">Make</label>
+            <select value={filterMake} onChange={e => setFilterMake(e.target.value)} className={`${inputClass} w-full`}>
+              <option value="">All Makes</option>
+              {makes.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-500">Status</label>
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={`${inputClass} w-full`}>
+              <option value="all">All</option>
+              <option value="available">Available</option>
+              <option value="sold">Sold</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-500">Max Price</label>
             <input
-              type="text"
-              placeholder="Year, make, model…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className={`${inputClass} pl-8 w-full`}
+              type="number"
+              placeholder="Any"
+              value={maxPrice}
+              onChange={e => setMaxPrice(e.target.value)}
+              className={`${inputClass} w-full`}
             />
           </div>
-        </div>
 
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-500">Make</label>
-          <select value={filterMake} onChange={e => setFilterMake(e.target.value)} className={inputClass}>
-            <option value="">All Makes</option>
-            {makes.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-500">Status</label>
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={inputClass}>
-            <option value="all">All</option>
-            <option value="available">Available</option>
-            <option value="sold">Sold</option>
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-500">Max Price</label>
-          <input
-            type="number"
-            placeholder="Any"
-            value={maxPrice}
-            onChange={e => setMaxPrice(e.target.value)}
-            className={`${inputClass} w-28`}
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-500">Sort By</label>
-          <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={inputClass}>
-            <option value="newest">Newest First</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="year-desc">Year: Newest</option>
-            <option value="year-asc">Year: Oldest</option>
-            <option value="mileage-asc">Lowest Mileage</option>
-          </select>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-500">Sort By</label>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={`${inputClass} w-full`}>
+              <option value="newest">Newest First</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="year-desc">Year: Newest</option>
+              <option value="year-asc">Year: Oldest</option>
+              <option value="mileage-asc">Lowest Mileage</option>
+            </select>
+          </div>
         </div>
 
         {(search || filterMake || filterStatus !== 'available' || maxPrice) && (
           <button
             onClick={() => { setSearch(''); setFilterMake(''); setFilterStatus('available'); setMaxPrice('') }}
-            className="text-xs text-[#1A7FC4] hover:text-[#0F5FA0] font-medium self-end pb-2"
+            className="mt-3 text-xs text-[#1A7FC4] hover:text-[#0F5FA0] font-medium"
           >
             Clear filters
           </button>

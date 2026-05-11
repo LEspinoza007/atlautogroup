@@ -24,12 +24,12 @@ function WhatsAppIcon() {
 export default function Footer() {
   return (
     <footer className="bg-zinc-950 text-zinc-300 mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 sm:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 sm:grid-cols-3 gap-8 [&>div]:min-w-0">
         <div>
           <div className="flex items-center gap-3 mb-3">
             <img src="/logo-white.png" alt="ATL Auto Group" className="h-16 w-auto" />
           </div>
-          <p className="text-sm text-zinc-500 mb-4">Quality pre-owned vehicles in San Antonio. ATL Logistics LLC.</p>
+          <p className="text-sm text-zinc-500 mb-4 break-words">Quality pre-owned vehicles in San Antonio. ATL Logistics LLC.</p>
           <div className="flex items-center gap-3">
             <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer"
               className="p-2 bg-zinc-800 hover:bg-blue-600 rounded-lg transition-colors text-zinc-400 hover:text-white">

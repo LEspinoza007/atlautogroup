@@ -72,22 +72,24 @@ export default function SettingsPage() {
         </div>
         <div className="space-y-3">
           {hours.map(h => (
-            <div key={h.day_of_week} className="flex items-center gap-3">
-              <span className="w-24 text-sm font-medium text-zinc-700 shrink-0">{DAYS[h.day_of_week]}</span>
-              <label className="flex items-center gap-1.5 text-xs text-zinc-500 shrink-0">
-                <input type="checkbox" checked={h.is_closed}
-                  onChange={e => updateHour(h.day_of_week, 'is_closed', e.target.checked)}
-                  className="accent-rose-600 w-3.5 h-3.5"
-                /> Closed
-              </label>
+            <div key={h.day_of_week} className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <span className="w-24 text-sm font-medium text-zinc-700 shrink-0">{DAYS[h.day_of_week]}</span>
+                <label className="flex items-center gap-1.5 text-xs text-zinc-500 shrink-0">
+                  <input type="checkbox" checked={h.is_closed}
+                    onChange={e => updateHour(h.day_of_week, 'is_closed', e.target.checked)}
+                    className="accent-rose-600 w-3.5 h-3.5"
+                  /> Closed
+                </label>
+              </div>
               {!h.is_closed && (
-                <>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
                   <input type="time" value={h.open_time ?? ''} onChange={e => updateHour(h.day_of_week, 'open_time', e.target.value)}
-                    className={`${inputClass} flex-1`} />
+                    className={`${inputClass} flex-1 min-w-0`} />
                   <span className="text-zinc-400 text-sm shrink-0">to</span>
                   <input type="time" value={h.close_time ?? ''} onChange={e => updateHour(h.day_of_week, 'close_time', e.target.value)}
-                    className={`${inputClass} flex-1`} />
-                </>
+                    className={`${inputClass} flex-1 min-w-0`} />
+                </div>
               )}
               {h.is_closed && <div className="flex-1 border border-dashed border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-300">Closed all day</div>}
             </div>

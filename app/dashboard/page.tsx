@@ -40,7 +40,8 @@ export default async function DashboardPage() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[500px]">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               <th className="text-left px-6 py-3 font-medium text-gray-500">Vehicle</th>
@@ -87,6 +88,7 @@ export default async function DashboardPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )

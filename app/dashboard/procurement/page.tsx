@@ -49,17 +49,19 @@ export default async function ProcurementPage() {
               <p className="text-sm text-zinc-500 bg-zinc-50 rounded-xl px-4 py-3 mb-4">{req.notes}</p>
             )}
 
-            <div className="flex items-center gap-6 pt-3 border-t border-zinc-100 text-sm">
-              <span className="font-semibold text-zinc-900">{req.client_first_name} {req.client_last_name}</span>
-              <a href={`https://wa.me/${req.client_phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 text-green-600 hover:underline">
-                <Phone className="w-3.5 h-3.5" />{req.client_phone}
-              </a>
-              {req.client_email && (
-                <a href={`mailto:${req.client_email}`} className="flex items-center gap-1 text-blue-600 hover:underline">
-                  <Mail className="w-3.5 h-3.5" />{req.client_email}
+            <div className="pt-3 border-t border-zinc-100 text-sm space-y-1.5">
+              <span className="block font-semibold text-zinc-900">{req.client_first_name} {req.client_last_name}</span>
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                <a href={`https://wa.me/${req.client_phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-green-600 hover:underline">
+                  <Phone className="w-3.5 h-3.5 shrink-0" />{req.client_phone}
                 </a>
-              )}
+                {req.client_email && (
+                  <a href={`mailto:${req.client_email}`} className="flex items-center gap-1 text-blue-600 hover:underline min-w-0 break-all">
+                    <Mail className="w-3.5 h-3.5 shrink-0" />{req.client_email}
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         ))}
