@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Vehicle, VehicleStatus } from '@/types'
-import { Star, X, Plus } from 'lucide-react'
+import { Star, X, Plus, Sparkles } from 'lucide-react'
 
 type Props = { vehicle?: Vehicle }
 
@@ -112,6 +112,8 @@ export default function VehicleForm({ vehicle }: Props) {
   const [photos, setPhotos] = useState<PhotoEntry[]>(() => initPhotos(vehicle))
   const [thumbnailIndex, setThumbnailIndex] = useState(vehicle?.thumbnail_index ?? 0)
   const [dragOver, setDragOver] = useState<number | null>(null)
+
+  const [featured, setFeatured] = useState(vehicle?.featured ?? false)
 
   const [vinLoading, setVinLoading] = useState(false)
   const [vinError, setVinError] = useState('')
@@ -258,6 +260,7 @@ export default function VehicleForm({ vehicle }: Props) {
       is_sale: form.status === 'sale' || form.status === 'clearance',
       description: form.description,
       thumbnail_index: thumbnailIndex,
+      featured,
     }
 
     let vehicleId = vehicle?.id
@@ -439,6 +442,29 @@ export default function VehicleForm({ vehicle }: Props) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Featured */}
+      <div className={`rounded-xl border-2 p-5 transition-colors ${featured ? 'bg-amber-50 border-amber-400' : 'bg-white border-gray-200 shadow-sm'}`}>
+        <label className="flex items-start gap-4 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={featured}
+            onChange={e => setFeatured(e.target.checked)}
+            className="mt-0.5 w-5 h-5 rounded accent-amber-500 cursor-pointer shrink-0"
+          />
+          <div>
+            <div className="flex items-center gap-2">
+              <Sparkles className={`w-4 h-4 ${featured ? 'text-amber-500' : 'text-zinc-400'}`} />
+              <span className={`font-semibold text-sm ${featured ? 'text-amber-700' : 'text-gray-700'}`}>
+                Feature on Homepage
+              </span>
+            </div>
+            <p className="text-xs text-zinc-500 mt-0.5">
+              This vehicle will appear in the Featured Vehicles section on the homepage. Multiple featured vehicles are shown in random order.
+            </p>
+          </div>
+        </label>
       </div>
 
       {/* Photos */}

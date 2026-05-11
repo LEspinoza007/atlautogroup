@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/Header'
 import FinancingBanner from '@/components/FinancingBanner'
+import FeaturedVehicles from '@/components/FeaturedVehicles'
 import InventoryClient from '@/components/InventoryClient'
 import Footer from '@/components/Footer'
 import ProcurementForm from '@/components/ProcurementForm'
@@ -31,6 +32,8 @@ export default async function HomePage() {
           </div>
         </div>
       </div>
+
+      <FeaturedVehicles />
 
       <FinancingBanner />
 

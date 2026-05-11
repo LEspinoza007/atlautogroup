@@ -22,6 +22,7 @@ export type Vehicle = {
   title_status: string
   images: string[]
   thumbnail_index: number
+  featured: boolean
   created_at: string
   updated_at: string
 }
