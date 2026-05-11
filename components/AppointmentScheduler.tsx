@@ -52,22 +52,21 @@ export default function AppointmentScheduler({ vehicleId, vehicleName, businessH
   }
 
   const selectedHours = getHoursForDate(date)
-  const slots = selectedHours && !selectedHours.is_closed && selectedHours.open_time && selectedHours.close_time
+  const isBlackout = blackoutSet.has(date)
+  const slots = selectedHours && !selectedHours.is_closed && selectedHours.open_time && selectedHours.close_time && !isBlackout
     ? generateSlots(selectedHours.open_time, selectedHours.close_time)
     : []
 
   const today = new Date().toISOString().split('T')[0]
 
-  function isDateDisabled(d: string) {
-    if (d < today) return true
-    if (blackoutSet.has(d)) return true
-    const hours = getHoursForDate(d)
-    return !hours || hours.is_closed
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!date || !time) { setError('Please select a date and time.'); return }
+    if (date < today) { setError('Cannot schedule in the past.'); return }
+    if (isBlackout) { setError('This date is not available for appointments.'); return }
+    const h = getHoursForDate(date)
+    if (!h || h.is_closed) { setError('We are closed on this day.'); return }
+    if (!slots.includes(time)) { setError('Please select a valid available time slot.'); return }
     setSubmitting(true); setError('')
     const { error: err } = await supabase.from('appointments').insert({
       vehicle_id: vehicleId,
@@ -109,7 +108,7 @@ export default function AppointmentScheduler({ vehicleId, vehicleName, businessH
           <div>
             <label className="block text-xs font-semibold text-zinc-500 mb-1.5 uppercase tracking-wide">Date</label>
             <input type="date" min={today} value={date}
-              onChange={e => { setDate(e.target.value); setTime('') }}
+              onChange={e => { setDate(e.target.value); setTime(''); setError('') }}
               className="w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#5BB8F5]"
             />
           </div>
@@ -124,8 +123,8 @@ export default function AppointmentScheduler({ vehicleId, vehicleName, businessH
                 {slots.map(s => <option key={s} value={s}>{formatTime(s)}</option>)}
               </select>
             ) : date ? (
-              <div className="border border-zinc-200 rounded-xl px-3 py-2.5 text-sm text-zinc-400 bg-white">
-                {blackoutSet.has(date) ? 'Closed this date' : selectedHours?.is_closed ? `Closed on ${DAYS[new Date(date + 'T12:00:00').getDay()]}s` : 'Select a date first'}
+              <div className="border border-zinc-200 rounded-xl px-3 py-2.5 text-sm text-red-400 bg-red-50">
+                {isBlackout ? 'Unavailable — blacked out' : selectedHours?.is_closed ? `Closed on ${DAYS[new Date(date + 'T12:00:00').getDay()]}s` : 'No slots available'}
               </div>
             ) : (
               <div className="border border-zinc-200 rounded-xl px-3 py-2.5 text-sm text-zinc-400 bg-white">Select a date first</div>

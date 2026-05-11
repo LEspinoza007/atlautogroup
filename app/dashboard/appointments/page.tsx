@@ -55,7 +55,7 @@ export default async function AppointmentsPage() {
           <table className="w-full text-sm">
             <thead className="bg-zinc-50 border-b border-zinc-100">
               <tr>
-                {['Date & Time', 'Client', 'Contact', 'Vehicle', 'DNC', 'Status', 'Actions'].map(h => (
+                {['Date & Time', 'Client', 'Contact', 'Vehicle', 'DNC', 'Status', ''].map(h => (
                   <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wide">{h}</th>
                 ))}
               </tr>
