@@ -2,6 +2,7 @@ import { MapPin, Phone } from 'lucide-react'
 
 const FINANCING_URL = 'https://www.startyourcreditapproval.com/credit-application/DC5W7?utm_medium=qr_code&utm_source=dealer&utm_campaign=credit_app'
 const FACEBOOK_URL = 'https://www.facebook.com/profile.php?id=61574727189453'
+const MESSENGER_URL = 'https://m.me/61574727189453'
 const WHATSAPP_URL = 'https://wa.me/19566947000'
 const INSTAGRAM_URL = 'https://www.instagram.com/atl.logistics/'
 const MAPS_URL = 'https://maps.google.com/?q=2379+Northeast+Interstate+410+Loop,+San+Antonio,+TX+78217'
@@ -10,6 +11,14 @@ function FacebookIcon() {
   return (
     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    </svg>
+  )
+}
+
+function MessengerIcon() {
+  return (
+    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 0C5.374 0 0 4.975 0 11.111c0 3.497 1.745 6.616 4.472 8.652V24l4.086-2.242c1.09.301 2.246.464 3.442.464 6.626 0 12-4.974 12-11.111S18.626 0 12 0zm1.193 14.963l-3.056-3.259-5.963 3.259L10.733 8.5l3.13 3.259L19.752 8.5l-6.559 6.463z"/>
     </svg>
   )
 }
@@ -43,6 +52,10 @@ export default function Footer() {
             <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer"
               className="p-2 bg-zinc-800 hover:bg-blue-600 rounded-lg transition-colors text-zinc-400 hover:text-white">
               <FacebookIcon />
+            </a>
+            <a href={MESSENGER_URL} target="_blank" rel="noopener noreferrer"
+              className="p-2 bg-zinc-800 hover:bg-blue-500 rounded-lg transition-colors text-zinc-400 hover:text-white" aria-label="Messenger">
+              <MessengerIcon />
             </a>
             <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"
               className="p-2 bg-zinc-800 hover:bg-green-600 rounded-lg transition-colors text-zinc-400 hover:text-white">
